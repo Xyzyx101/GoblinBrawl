@@ -269,16 +269,26 @@ void Goblin::UpdateActions() {
 		}
 
 		// This turn amount and forward amount will be overridden if using gamepad
-		if( action.Forward ) {
+		if (action.Forward) {
 			forwardAmount = 1.f;
-		} else if( action.Back ) {
+		}
+		else if (action.Back) {
 			forwardAmount = -1.f;
 		}
+		else if (!action.Back && !action.Forward)
+		{
+			forwardAmount = 0.f;
+		}
 
-		if( action.Left ) {
-			turnAmount = -1.f;
-		} else if( action.Right ) {
+		if (action.Left) {
 			turnAmount = 1.f;
+		}
+		else if (action.Right) {
+			turnAmount = -1.f;
+		}
+		else if (!action.Left && !action.Right)
+		{
+			turnAmount = 0.f;
 		}
 	}
 }

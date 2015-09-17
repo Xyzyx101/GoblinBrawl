@@ -19,7 +19,7 @@
     <Filter Include="Bullet">
       <UniqueIdentifier>{b503cdef-f36d-46cb-a3d4-4dd8267dcaff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DirectXTC">
+    <Filter Include="DirectXTK">
       <UniqueIdentifier>{1c897b63-dddb-4330-a6b0-599966c5ac3e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -790,58 +790,58 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\Audio.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\CommonStates.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\DDSTextureLoader.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\DirectXHelpers.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\Effects.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\GamePad.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\GeometricPrimitive.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\Keyboard.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\Model.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\Mouse.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\PrimitiveBatch.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\ScreenGrab.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\SimpleMath.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\SpriteBatch.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\SpriteFont.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\VertexTypes.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\WICTextureLoader.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="include\DirectXTC\XboxDDSTextureLoader.h">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </ClInclude>
     <ClInclude Include="MyEffects.h">
       <Filter>Header Files</Filter>
@@ -1373,7 +1373,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\DirectXTC\SimpleMath.inl">
-      <Filter>DirectXTC</Filter>
+      <Filter>DirectXTK</Filter>
     </None>
   </ItemGroup>
 </Project>
