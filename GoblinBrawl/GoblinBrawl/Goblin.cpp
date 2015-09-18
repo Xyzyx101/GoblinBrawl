@@ -181,7 +181,7 @@ void Goblin::UpdateController( float dt ) {
 	}
 	XMStoreFloat2( &moveVel, xmMoveVel );
 
-	float rotY = atan2( moveVel.y, moveVel.x );
+	float rotY = atan2( moveVel.x, moveVel.y );
 	btMatrix3x3 moveRot;
 	moveRot.setEulerZYX( 0.f, rotY, 0.f );
 
@@ -271,6 +271,9 @@ void Goblin::UpdateActions() {
 		} else if( action.Left ) {
 			moveDir.x -= 1.f;
 		}
+	}
+	if( moveDir.y>0 ) {
+		int DELETEME = 17;
 	}
 }
 
