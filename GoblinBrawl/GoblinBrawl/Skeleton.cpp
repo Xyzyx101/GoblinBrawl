@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Skeleton.h"
 #include <vector>
+#include "DirectX_11_1_Includes.h"
 #include "PhysicsWorld.h"
 #include "MathUtils.h"
 #include "AnimationController.h"
@@ -43,7 +44,7 @@ Bone* Skeleton::GetBoneByIndex( int index ) {
 
 void XM_CALLCONV Skeleton::UpdateTransformByName( FXMVECTOR translate, FXMVECTOR rotQuat, FXMVECTOR scale, std::string name ) {
 	Bone* bone = nameBones[name];
-	XMVECTOR zeroVec = XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, 0.f, 1.f ) );
+	XMVECTOR zeroVec = DirectX::XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, 0.f, 1.f ) );
 	bone->localTransform = XMMatrixAffineTransformation(
 		scale,
 		zeroVec,
@@ -54,7 +55,7 @@ void XM_CALLCONV Skeleton::UpdateTransformByName( FXMVECTOR translate, FXMVECTOR
 
 void XM_CALLCONV Skeleton::UpdateTransformByIndex( FXMVECTOR translate, FXMVECTOR rotQuat, FXMVECTOR scale, int index ) {
 	Bone* bone = idxBones[index];
-	XMVECTOR zeroVec = XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, 0.f, 1.f ) );
+	XMVECTOR zeroVec = DirectX::XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, 0.f, 1.f ) );
 	bone->localTransform = XMMatrixAffineTransformation(
 		scale,
 		zeroVec,
@@ -72,24 +73,38 @@ DirectX::XMFLOAT4X4* Skeleton::GetFinalTransforms() {
 	return finalTransformData;
 }
 
+void Skeleton::Update( float dt ) {
+	Bone* root = GetBoneByName( "Skeleton_Root" );
+	XMMATRIX rootXform = toRoot[root->idx];
+	//DirectX::XMMATRIX localXform = root->localTransform;
+	XMMATRIX worldXform = XMLoadFloat4x4( &rootTransform );
+	XMMATRIX finalXform = rootXform*worldXform;
+	root->body->setWorldTransform( XMMatrixToBTTransform( finalXform, false ) );
+}
+
 void Skeleton::UpdateTransforms( Bone* bone ) {
 	XMMATRIX localTransform = bone->localTransform;
 	XMMATRIX offset = bone->offset;
 	XMMATRIX finalTransform;
 	if( bone->parentIdx==-1 ) {
+		// TODO clean this up
+		DirectX::XMMATRIX offset = bone->offset;
+		DirectX::XMVECTOR det = XMMatrixDeterminant( offset );
+		DirectX::XMMATRIX offsetInverse = XMMatrixInverse( &det, offset );
 		DirectX::XMMATRIX rotY = XMMatrixRotationY( XM_PIDIV2 );
 		DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+		DirectX::XMMATRIX otherWay = localTransform*offsetInverse;
 		localTransform = localTransform*rotZ*rotY;
 		// The root bone
-		toRoot[bone->idx] = localTransform;
-		finalTransform = offset*localTransform;
+		toRoot[bone->idx] = otherWay;
+		finalTransform = offset*otherWay;
 	} else {
 		XMMATRIX parentToRoot = toRoot[bone->parentIdx];
 		XMMATRIX boneToRoot = localTransform*parentToRoot;
 		toRoot[bone->idx] = boneToRoot;
 		finalTransform = offset*boneToRoot;
 	}
-	XMStoreFloat4x4( &finalTransformData[bone->idx], finalTransform );
+	DirectX::XMStoreFloat4x4( &finalTransformData[bone->idx], finalTransform );
 	if( bone->children.size()==0 ) { return; }
 	for( Bone* childBone:bone->children ) {
 		UpdateTransforms( childBone );
@@ -111,7 +126,7 @@ void Skeleton::UpdateLocalTransforms() {
 }
 
 void XM_CALLCONV Skeleton::SetRootTransform( FXMMATRIX transform ) {
-	XMStoreFloat4x4( &rootTransform, transform );
+	DirectX::XMStoreFloat4x4( &rootTransform, transform );
 }
 
 void Skeleton::InitPhysics( PhysicsWorld* _physicsWorld ) {
@@ -317,53 +332,102 @@ void Skeleton::CreateAllJoints() {
 	from = GetBoneByName( "Skeleton_Root" );
 	to = GetBoneByName( "Skeleton_Hips" );
 	float fromLength = GetBoneLength( to );
-	float toLength = shapeLengths[S_HIPS];
+	float hipLength = shapeLengths[S_HIPS];
+	XMMATRIX xmLocal = to->localTransform;
+	btTransform toLocal = XMMatrixToBTTransform( xmLocal, true );
+
+	XMMATRIX rootOffset = from->offset;
+	btTransform fromLocal = XMMatrixToBTTransform( rootOffset, true );
 	btTransform localA, localB;
 	localA.setIdentity(); localB.setIdentity();
-	localA.getBasis().setEulerZYX( 0., 0., XM_PIDIV2 );
-	localA.setOrigin( btVector3( btScalar( 0. ), btScalar( fromLength ), btScalar( 0. ) ) );
-	localB.getBasis().setEulerZYX( 0., 0., XM_PIDIV2 );
-	localB.setOrigin( btVector3( btScalar( 0. ), btScalar( 0.0 ), btScalar( 0. ) ) );
+	localA.getBasis().setEulerZYX( 0., 0., 0. );
+	localA.setOrigin( toLocal.getOrigin() );
+	localB.getBasis().setEulerZYX( 0., 0., 0. );
+	localB.setBasis( toLocal.getBasis() );
+	localB.setOrigin( btVector3( btScalar( -hipLength*0.5 ), btScalar( 0. ), btScalar( 0. ) ) );
 	btConeTwistConstraint* c = new btConeTwistConstraint( *(from->body), *(to->body), localA, localB );
 	c->setLimit( debugLimit, debugLimit, debugLimit );
 	c->setDbgDrawSize( 1. );
 	joints[J_ROOT_HIP] = c;
+	btScalar swingLimit1( debugLimit );
+	btScalar swingLimit2( debugLimit );
+	btScalar twistLimit( debugLimit );
 	physicsWorld->World()->addConstraint( joints[J_ROOT_HIP], true );
 
 	from = GetBoneByName( "Skeleton_Hips" );
 	to = GetBoneByName( "Skeleton_Lower_Spine" );
-	JointInfo j;
-	j.fromOffset = btVector3( btScalar( 0. ), btScalar( shapeLengths[S_HIPS]*0.5 ), btScalar( 0. ) );
-	j.toOffset = btVector3( btScalar( 0. ), btScalar( -shapeLengths[S_LOWER_SPINE]*0.5 ), btScalar( 0. ) );
-	j.aRotX = btScalar( 0. ); j.aRotY = btScalar( 0. ); j.aRotZ = btScalar( XM_PIDIV2 );
-	j.bRotX = btScalar( 0. ); j.bRotY = btScalar( 0. ); j.bRotZ = btScalar( XM_PIDIV2 );
-	j.swingLimit1 = btScalar( debugLimit );
-	j.swingLimit2 = btScalar( debugLimit );
-	j.twistLimit = btScalar( debugLimit );
-	CreateConstraint( J_HIP_LOWER_SPINE, from, to, j );
+	xmLocal = to->localTransform;
+	toLocal = XMMatrixToBTTransform( xmLocal, true );
+	localA.setIdentity(); localB.setIdentity();
+	localA.getBasis().setEulerZYX( 0., 0., 0. );
+	localA.setOrigin( toLocal.getOrigin()+btVector3( -shapeLengths[S_HIPS]*0.5, 0., 0. ) );
+	localB.setBasis( toLocal.getBasis() );
+	localB.setOrigin( btVector3( btScalar( -shapeLengths[S_LOWER_SPINE]*0.5 ), btScalar( 0. ), btScalar( 0. ) ) );
+	c = new btConeTwistConstraint( *(from->body), *(to->body), localA, localB );
+	swingLimit1 = debugLimit;
+	swingLimit2 = debugLimit;
+	twistLimit = debugLimit;
+	c->setLimit( swingLimit1, swingLimit2, twistLimit );
+	joints[J_HIP_LOWER_SPINE] = c;
+	c->setDbgDrawSize( 1. );
+	physicsWorld->World()->addConstraint( joints[J_HIP_LOWER_SPINE], true );
 
 	from = GetBoneByName( "Skeleton_Lower_Spine" );
 	to = GetBoneByName( "Skeleton_Upper_Spine" );
-	j.fromOffset = btVector3( btScalar( 0. ), btScalar( shapeLengths[S_LOWER_SPINE]*0.5 ), btScalar( 0. ) );
-	j.toOffset = btVector3( btScalar( 0. ), btScalar( -shapeLengths[S_UPPER_SPINE]*0.5 ), btScalar( 0. ) );
-	j.aRotX = btScalar( 0. ); j.aRotY = btScalar( 0. ); j.aRotZ = btScalar( XM_PIDIV2 );
-	j.bRotX = btScalar( 0. ); j.bRotY = btScalar( 0. ); j.bRotZ = btScalar( XM_PIDIV2 );
-	j.swingLimit1 = btScalar( debugLimit );
-	j.swingLimit2 = btScalar( debugLimit );
-	j.twistLimit = btScalar( debugLimit );
-	CreateConstraint( J_LOWER_UPPER_SPINE, from, to, j );
+	xmLocal = to->localTransform;
+	toLocal = XMMatrixToBTTransform( xmLocal, true );
+	localA.setIdentity(); localB.setIdentity();
+	localA.getBasis().setEulerZYX( 0., 0., 0. );
+	localA.setOrigin( toLocal.getOrigin()+btVector3( -shapeLengths[S_LOWER_SPINE]*0.5, 0., 0. ));
+	localB.setBasis( toLocal.getBasis() );
+	localB.setOrigin( btVector3( btScalar( -shapeLengths[S_UPPER_SPINE]*0.5 ), btScalar( 0. ), btScalar( 0. ) ) );
+	c = new btConeTwistConstraint( *(from->body), *(to->body), localA, localB );
+	swingLimit1 = debugLimit;
+	swingLimit2 = debugLimit;
+	twistLimit = debugLimit;
+	c->setLimit( swingLimit1, swingLimit2, twistLimit );
+	joints[J_LOWER_UPPER_SPINE] = c;
+	c->setDbgDrawSize( 1. );
+	physicsWorld->World()->addConstraint( joints[J_LOWER_UPPER_SPINE], true );
 
 	from = GetBoneByName( "Skeleton_Upper_Spine" );
 	to = GetBoneByName( "Skeleton_Neck" );
-	j.fromOffset = btVector3( btScalar( 0. ), btScalar( shapeLengths[S_UPPER_SPINE]*0.5 ), btScalar( 0. ) );
-	j.toOffset = btVector3( btScalar( 0. ), btScalar( -shapeLengths[S_NECK]*0.5 ), btScalar( 0. ) );
-	j.aRotX = btScalar( 0. ); j.aRotY = btScalar( 0. ); j.aRotZ = btScalar( XM_PIDIV2 );
-	j.bRotX = btScalar( 0. ); j.bRotY = btScalar( 0. ); j.bRotZ = btScalar( XM_PIDIV2 );
-	j.swingLimit1 = btScalar( debugLimit );
-	j.swingLimit2 = btScalar( debugLimit );
-	j.twistLimit = btScalar( debugLimit );
-	CreateConstraint( J_SPINE_NECK, from, to, j );
+	xmLocal = to->localTransform;
+	toLocal = XMMatrixToBTTransform( xmLocal, true );
+	localA.setIdentity(); localB.setIdentity();
+	localA.getBasis().setEulerZYX( 0., 0., 0. );
+	localA.setOrigin( toLocal.getOrigin()+btVector3( -shapeLengths[S_UPPER_SPINE]*0.5, 0., 0. ) );
+	localB.setBasis( toLocal.getBasis() );
+	localB.setOrigin( btVector3( btScalar( -shapeLengths[S_NECK]*0.5 ), btScalar( 0. ), btScalar( 0. ) ) );
+	c = new btConeTwistConstraint( *(from->body), *(to->body), localA, localB );
+	swingLimit1 = debugLimit;
+	swingLimit2 = debugLimit;
+	twistLimit = debugLimit;
+	c->setLimit( swingLimit1, swingLimit2, twistLimit );
+	joints[J_SPINE_NECK] = c;
+	c->setDbgDrawSize( 1. );
+	physicsWorld->World()->addConstraint( joints[J_SPINE_NECK], true );
 
+	from = GetBoneByName( "Skeleton_Neck" );
+	to = GetBoneByName( "Skeleton_Head" );
+	xmLocal = to->localTransform;
+	toLocal = XMMatrixToBTTransform( xmLocal, true );
+	localA.setIdentity(); localB.setIdentity();
+	localA.getBasis().setEulerZYX( 0., 0., 0. );
+	localA.setOrigin( toLocal.getOrigin()+btVector3( -shapeLengths[S_NECK]*0.5, 0., 0. ) );
+	localB.setBasis( toLocal.getBasis() );
+	localB.setOrigin( btVector3( btScalar( -shapeLengths[S_HEAD]*0.5 ), btScalar( 0. ), btScalar( 0. ) ) );
+	c = new btConeTwistConstraint( *(from->body), *(to->body), localA, localB );
+	swingLimit1 = debugLimit;
+	swingLimit2 = debugLimit;
+	twistLimit = debugLimit;
+	c->setLimit( swingLimit1, swingLimit2, twistLimit );
+	joints[J_NECK_HEAD] = c;
+	c->setDbgDrawSize( 1. );
+	physicsWorld->World()->addConstraint( joints[J_NECK_HEAD], true );
+
+	/*
+	
 	from = GetBoneByName( "Skeleton_Neck" );
 	to = GetBoneByName( "Skeleton_Head" );
 	j.fromOffset = btVector3( btScalar( 0. ), btScalar( shapeLengths[S_NECK]*0.5 ), btScalar( 0. ) );
@@ -545,9 +609,12 @@ void Skeleton::CreateAllJoints() {
 	j.swingLimit2 = btScalar( debugLimit );
 	j.twistLimit = btScalar( debugLimit );
 	CreateConstraint( J_CLUB, from, to, j );
+	*/
 }
 
 void Skeleton::CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &j ) {
+
+	//TODO Remove this
 
 	btTransform localA, localB;
 	localA.setIdentity(); localB.setIdentity();
@@ -831,4 +898,20 @@ void Skeleton::CreateDemoRagDoll() {
 	hingeC->setDbgDrawSize( CONSTRAINT_DEBUG_SIZE );
 
 	m_ownerWorld->addConstraint( m_joints[JOINT_RIGHT_ELBOW], true );
+}
+
+btTransform XM_CALLCONV Skeleton::XMMatrixToBTTransform( FXMMATRIX m, bool fbxCorrection ) {
+	XMVECTOR outScale;
+	XMVECTOR outRotQuat;
+	XMVECTOR outTrans;
+	XMMatrixDecompose( &outScale, &outRotQuat, &outTrans, m );
+	btTransform t = btTransform();
+	t.setIdentity();
+	if( fbxCorrection ) {
+		outTrans = XMVectorScale( outTrans, 0.01f ); //FBX scale
+	}
+	t.setOrigin( btVector3( btScalar( outTrans.m128_f32[0] ), btScalar( outTrans.m128_f32[1] ), btScalar( outTrans.m128_f32[2] ) ) );
+	btQuaternion rotQuat( btScalar( outRotQuat.m128_f32[0] ), btScalar( outRotQuat.m128_f32[1] ), btScalar( outRotQuat.m128_f32[2] ), btScalar( outRotQuat.m128_f32[3] ) );
+	t.setRotation( rotQuat );
+	return t;
 }

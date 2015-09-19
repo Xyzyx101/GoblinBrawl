@@ -454,8 +454,8 @@ void Game::Update( float dt ) {
 
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
-	XMVECTOR camPos = XMVectorSet( 0.f, 10.f, 20.1f, 1.f ); //XMFLOAT3( -11.4568f, 4.9013f, 17.961f );
-	XMVECTOR targetPos = XMVectorSet( 0.f, 1.f, 0.f, 1.0f );
+	XMVECTOR camPos = XMVectorSet( 0.f, 8.f, 7.1f, 1.f ); //XMFLOAT3( -11.4568f, 4.9013f, 17.961f );
+	XMVECTOR targetPos = XMVectorSet( 0.f, 3.f, 0.f, 1.0f );
 	camera.Update( camPos, targetPos );
 	//camera.UpdateFollow(  goblin.GetWorld() );
 }

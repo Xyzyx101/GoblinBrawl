@@ -229,14 +229,14 @@ DirectX::XMMATRIX XM_CALLCONV ModelLoader::ConvertMatrix( aiMatrix4x4 inMat ) {
 		inMat.a2, inMat.b2, inMat.c2, inMat.d2,
 		inMat.a3, inMat.b3, inMat.c3, inMat.d3,
 		inMat.a4, inMat.b4, inMat.c4, inMat.d4 );
-	DirectX::XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	/*DirectX::XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
 	DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
 	DirectX::XMMATRIX flipY = XMMATRIX(
 		1.f, 0.f, 0.f, 0.f,
 		0.f, -1.f, 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
 		0.f, 0.f, 0.f, 1.f );
-	DirectX::XMMATRIX converted = transposed*rotX*rotZ*flipY;
+	DirectX::XMMATRIX converted = transposed*rotX*rotZ*flipY;*/
 	return transposed;
 }
 

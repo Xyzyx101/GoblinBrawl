@@ -17,7 +17,7 @@ class AnimationController;
 
 using namespace DirectX;
 
-struct Bone {
+__declspec(align(16)) struct Bone {
 	Bone::Bone() {
 		localTransform = XMMatrixIdentity();
 		finalTransform = XMMatrixIdentity();
@@ -127,6 +127,7 @@ public:
 	void CreateDemoRagDoll();
 	btRigidBody* localCreateRigidBody( float mass, const btTransform& startTransform, btCollisionShape* shape );
 	void SetAnimationController( AnimationController* animationController );
+	void Update( float dt );
 private:
 	void UpdateLocalTransforms();
 	void UpdateTransforms( Bone* bone );
@@ -138,6 +139,7 @@ private:
 	//void CreateConstraint( JOINT joint, Bone* from, Bone* to, btVector3 fromOffset, btVector3 toOffset, btScalar aRotX, btScalar aRotY, btScalar aRotZ, btScalar bRotX, btScalar bRotY, btScalar bRotZ, btScalar swingLimit1, btScalar swingLimit2, btScalar twistLimit );
 	void CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &jointInfo );
 	float GetBoneLength( Bone* bone );
+	btTransform XM_CALLCONV XMMatrixToBTTransform( FXMMATRIX m, bool fbxCorrection );
 	int									numBones;
 	std::map<int, Bone*>				idxBones;
 	std::map<std::string, Bone*>		nameBones;

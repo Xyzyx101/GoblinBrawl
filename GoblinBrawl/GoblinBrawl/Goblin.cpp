@@ -154,6 +154,8 @@ void Goblin::Update( float dt ) {
 	fprintf( stdout, "DT : %f, Pos: %3.2f %3.2f %3.2f", dt, pos.r[3].m128_f32[0], pos.r[3].m128_f32[1], pos.r[3].m128_f32[2] );
 	UpdateActions();
 	fsm->Update( dt );
+	skeleton->SetRootTransform( GetWorld() );
+	skeleton->Update( dt );
 	animController.Interpolate( dt );
 	UpdateModelTransforms();
 }
