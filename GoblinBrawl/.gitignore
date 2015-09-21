@@ -1,3 +1,6 @@
+# Remove compiled Shaders
+*.fxo
+
 # ignore asset import log
 assimp.log
 
