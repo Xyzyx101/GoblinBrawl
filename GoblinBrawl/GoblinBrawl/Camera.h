@@ -11,9 +11,11 @@ public:
 	// Update expects the charactor pos and dir. The camera offset and
 	// target will be calculated by the Update function.
 	void XM_CALLCONV Update( FXMVECTOR pos, FXMVECTOR target);
-	void XM_CALLCONV UpdateFollow( FXMMATRIX world );
+	// void XM_CALLCONV UpdateFollow( FXMMATRIX world );
 	XMMATRIX XM_CALLCONV GetViewProj();
 	XMVECTOR XM_CALLCONV GetPos();
+	UINT XM_CALLCONV GetCamType();
+	void XM_CALLCONV SetCamType(UINT typeNum);
 private:
 	XMVECTOR pos;
 	XMMATRIX view;
@@ -23,4 +25,5 @@ private:
 	FLOAT nearZ;
 	FLOAT farZ;
 	FLOAT fovAngleY;
+	UINT camType;
 };
