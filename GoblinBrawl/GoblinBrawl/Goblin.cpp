@@ -16,16 +16,16 @@ mesh( nullptr ),
 diffuseView( nullptr ),
 ghostObject( nullptr ),
 controller( nullptr ),
-forwardAmount( 0 ),
-turnAmount( 0 ),
-strafeAmount( 0 ),
-forwardSpeed( 1.f ),
-turnSpeed( 2.f ),
-strafeSpeed( 1.f ),
+maxVel( 4.f ),
+moveAccel( 30.f ),
+turnAccel( XM_PI ),
+moveDecel( 0.35f ),
 fallSpeed( 20.f ),
 jumpSpeed( 10.f ),
-maxJumpHeight( 1.75f )
-{}
+maxJumpHeight( 1.75f ) {
+	moveDir = XMFLOAT2( 0.f, 0.f );
+	moveVel = XMFLOAT2( 0.f, 0.f );
+}
 
 Goblin::~Goblin() {
 	delete skeleton;
@@ -34,7 +34,7 @@ Goblin::~Goblin() {
 
 bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::KeyboardStateTracker* kb, GamePad* gamePad, PLAYER player, PhysicsWorld* physicsWorld ) {
 	// Model
-	modelLoader->Load( "Goblin4.fbx", Vertex::CHARACTER_SKINNED );
+	modelLoader->Load( "Goblin4_0006_Export.fbx", Vertex::CHARACTER_SKINNED );
 	mesh = modelLoader->GetMesh();
 	if( mesh->VB()==nullptr ) {
 		return false;
@@ -53,13 +53,16 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	// Start Position
 	XMFLOAT4 goblinPos;
 	if( player==PLAYER_1 ) {
-		goblinPos = XMFLOAT4( 0.f, 3.f, 0.f, 1.0f );
+		goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
 	} else {
 		goblinPos = XMFLOAT4( 20.f, 5.f, 10.f, 1.0f );
 	}
 	XMVECTOR xmVectorPos = XMLoadFloat4( &goblinPos );
 	SetPos( xmVectorPos );
 	rot = XMMatrixIdentity();
+	XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+	importRot = rotX*rotZ;
 	scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f ); //FBX scale
 
 	// Keyboard Controller
@@ -93,17 +96,17 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	physicsWorld->World()->addCollisionObject( ghostObject, COLLIDE_MASK::PLAYER_CONTROLLER, COLLIDE_MASK::GROUND );
 	physicsWorld->World()->addAction( controller );
 
-	modelControllerOffset = XMMatrixTranslation( 0.f, -(controllerHeight*0.5f+controllerWidth), 0.f ); //offset y by height and width because width is the sphere on the end of the capsule
+	modelControllerOffset = XMMatrixTranslation( 0.f, -(controllerHeight*0.5f+controllerWidth), 0.f ); // offset y by height and width because width is the sphere on the end of the capsule
 
 	// Create Physics Skelton
 	XMMATRIX goblinTransform = GetWorld();
-	skeleton->SetRootTransform(goblinTransform );
+	skeleton->SetRootTransform( goblinTransform );
 	skeleton->InitPhysics( physicsWorld );
 
 	// Animations
 	animController.SetSkeleton( skeleton );
 	std::vector<Anim*> anims = modelLoader->GetAnimations();
-	for( Anim* anim : anims ) {
+	for( Anim* anim:anims ) {
 		animController.AddAnim( anim );
 	}
 	skeleton->SetAnimationController( &animController );
@@ -150,7 +153,6 @@ void XM_CALLCONV Goblin::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vec
 void Goblin::Update( float dt ) {
 	fprintf( stdout, "DT : %f, Pos: %3.2f %3.2f %3.2f", dt, pos.r[3].m128_f32[0], pos.r[3].m128_f32[1], pos.r[3].m128_f32[2] );
 	UpdateActions();
-	DebugActionDisplay();
 	fsm->Update( dt );
 	animController.Interpolate( dt );
 	UpdateModelTransforms();
@@ -159,33 +161,33 @@ void Goblin::Update( float dt ) {
 void Goblin::UpdateController( float dt ) {
 	btTransform controllerTransform;
 	controllerTransform = ghostObject->getWorldTransform();
-
 	btVector3 forwardDir = controllerTransform.getBasis()[2];
-	fprintf( stdout, "forwardDir=%f,%f,%f\n", forwardDir[0], forwardDir[1], forwardDir[2] );
 	btVector3 upDir = controllerTransform.getBasis()[1];
 	btVector3 sideDir = controllerTransform.getBasis()[0];
 	forwardDir.normalize();
 	upDir.normalize();
 	sideDir.normalize();
 
-	btScalar walkSpeed = btScalar( forwardSpeed ) * forwardAmount;
-	fprintf( stdout, "walkSpeed=%f\n", walkSpeed );
+	XMVECTOR walkDir = XMLoadFloat2( &moveDir );
+	walkDir = XMVector2ClampLength( walkDir, 0.f, 1.f );
 
-	btScalar sideWalkSpeed = btScalar( strafeSpeed )* strafeAmount;
-	fprintf( stdout, "sideSpeed=%f\n", sideWalkSpeed );
-
-	if( turnAmount!=0.f ) {
-		btMatrix3x3 orn = ghostObject->getWorldTransform().getBasis();
-		btQuaternion rotQuat = btQuaternion( btVector3( 0, 1, 0 ), turnSpeed*turnAmount*dt ); // negative to convert right handed to left handed
-		rotQuat.normalize();
-		orn *= btMatrix3x3( rotQuat );
-		ghostObject->getWorldTransform().setBasis( orn );
+	XMVECTOR xmMoveVel = XMLoadFloat2( &moveVel );
+	XMVECTOR length = XMVector2LengthSq(walkDir);
+	if( length.m128_f32[0]<0.01f ) {
+		xmMoveVel *= moveDecel;
+	} else {
+		xmMoveVel = XMVectorAdd( xmMoveVel, walkDir * moveAccel * dt );
+		xmMoveVel = XMVector2ClampLength( xmMoveVel, 0.f, maxVel );
 	}
-	forwardDir *= btVector3( 1.0, 1.0, -1.0 );
-	sideDir *= btVector3( 1.0, 1.0, -1.0 );
-	btVector3 btWalkVector = forwardDir*walkSpeed+sideDir*sideWalkSpeed;
-	movementBearing = forwardDir.angle( btWalkVector );
-	controller->setWalkDirection( btWalkVector*dt );
+	XMStoreFloat2( &moveVel, xmMoveVel );
+
+	float rotY = atan2( moveVel.y, moveVel.x );
+	btMatrix3x3 moveRot;
+	moveRot.setEulerZYX( 0.f, rotY, 0.f );
+
+	ghostObject->getWorldTransform().setBasis( moveRot );
+	btVector3 btWalkVector( xmMoveVel.m128_f32[0], 0., xmMoveVel.m128_f32[1] );
+	controller->setWalkDirection( btWalkVector * physicsWorld->fixedTimeStep);
 }
 
 void Goblin::UpdateModelTransforms() {
@@ -229,21 +231,11 @@ FXMMATRIX XM_CALLCONV Goblin::GetWorld() {
 
 void Goblin::UpdateActions() {
 	ResetActions();
+	moveDir = XMFLOAT2( 0.f, 0.f );
 	auto gpState = gamePad->GetState( player ); // PLAYER_1 == gamepad 0
 	if( gpState.IsConnected() ) {
-		strafeAmount = gpState.thumbSticks.leftX;
-		forwardAmount = gpState.thumbSticks.leftY;
-		turnAmount = -gpState.thumbSticks.rightX;
-		if( forwardAmount>0 ) {
-			action.Forward = true;
-		} else if( forwardAmount<0 ) {
-			action.Back = true;
-		}
-		if( turnAmount<0||strafeAmount<0 ) {
-			action.Left = true;
-		} else if( turnAmount>0||strafeAmount>0 ) {
-			action.Right = true;
-		}
+		moveDir.x = gpState.thumbSticks.leftX;
+		moveDir.y = -gpState.thumbSticks.leftY;
 		action.Attack = gpState.IsBPressed();
 		action.Jump = gpState.IsAPressed();
 		action.Duck = gpState.IsXPressed();
@@ -269,26 +261,15 @@ void Goblin::UpdateActions() {
 		}
 
 		// This turn amount and forward amount will be overridden if using gamepad
-		if (action.Forward) {
-			forwardAmount = 1.f;
+		if( action.Forward ) {
+			moveDir.y -= 1.f;
+		} else if( action.Back ) {
+			moveDir.y += 1.f;
 		}
-		else if (action.Back) {
-			forwardAmount = -1.f;
-		}
-		else if (!action.Back && !action.Forward)
-		{
-			forwardAmount = 0.f;
-		}
-
-		if (action.Left) {
-			turnAmount = 1.f;
-		}
-		else if (action.Right) {
-			turnAmount = -1.f;
-		}
-		else if (!action.Left && !action.Right)
-		{
-			turnAmount = 0.f;
+		if( action.Right ) {
+			moveDir.x += 1.f;
+		} else if( action.Left ) {
+			moveDir.x -= 1.f;
 		}
 	}
 }
@@ -301,17 +282,6 @@ void Goblin::ResetActions() {
 	action.Attack = false;
 	action.Jump = false;
 	action.Duck = false;
-}
-
-void Goblin::DebugActionDisplay() {
-	fprintf( stdout, "\n\nForward:%i\nBack:%i\nRight:%i\nLeft:%i\nAttack:%i\nJump:%i\nDuck:%i\n",
-		action.Forward,
-		action.Back,
-		action.Left,
-		action.Right,
-		action.Attack,
-		action.Jump,
-		action.Duck );
 }
 
 void Goblin::InitFSM() {
@@ -333,7 +303,7 @@ void Goblin::InitFSM() {
 	turnRightStateData.Before = &Goblin::Turn_Right_Before;
 	turnRightStateData.Update = &Goblin::Turn_Right_Update;
 	turnRightStateData.After = &Goblin::Turn_Right_After;
-	fsm->AddState( FSM_STATE::TURN_RIGHT, turnRightStateData);
+	fsm->AddState( FSM_STATE::TURN_RIGHT, turnRightStateData );
 
 	FSM<Goblin>::StateData turnLeftStateData;
 	turnLeftStateData.Before = &Goblin::Turn_Left_Before;
@@ -399,35 +369,14 @@ void Goblin::InitFSM() {
 }
 
 void Goblin::UpdateWalkDirection() {
-	if( abs( turnAmount )>0.01 ) {
-		if( turnAmount>0 ) {
-			fsm->ChangeState( TURN_LEFT );
-		} else {
-			fsm->ChangeState( TURN_RIGHT );
-		}
-		return;
-	}
-	if( movementBearing!=movementBearing ) { // check for undefined
-		fsm->ChangeState( IDLE );
-		return;
-	}
-	fprintf( stdout, "Bearing:%f\n", movementBearing );
-	if( movementBearing>backwardAngle ) {
-		fsm->ChangeState( BACKWARD );
-	} else if( movementBearing>forwardAngle ) {
-		if(strafeAmount>0) {
-			fsm->ChangeState( TURN_RIGHT );
-		} else {
-			fsm->ChangeState( TURN_LEFT );
-		}
-	} else {
-		fsm->ChangeState( FORWARD );
-	}
+
+	// TODO sync animation direction with controller direction
+
 }
 
 void Goblin::Idle_Before( float dt ) {
 	fprintf( stdout, "Idle_Before\n" );
-	animController.ChangeAnim( ANIM_IDLE );
+	animController.ChangeAnim( ANIM_TEST );
 }
 
 void Goblin::Idle_Update( float dt ) {
@@ -452,7 +401,7 @@ void Goblin::Idle_After( float dt ) {
 
 void Goblin::Forward_Before( float dt ) {
 	fprintf( stdout, "Forward_Before\n" );
-	animController.ChangeAnim( ANIM_WALK );
+	animController.ChangeAnim( ANIM_TEST );
 }
 
 void Goblin::Forward_Update( float dt ) {

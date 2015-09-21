@@ -141,7 +141,7 @@ BYTE* Floor::GetRawHeightData( int gridSize, float heightScale, btScalar gridSpa
 		NULL,
 		D3D11_CPU_ACCESS_READ,
 		NULL,
-		false, //should be true maybe
+		true, //should be true maybe
 		&heightfieldResource,
 		NULL ));
 	ID3D11DeviceContext* deviceContext;

@@ -28,6 +28,7 @@ public:
 	void AddCollisionShape( btCollisionShape* shape );
 	void XM_CALLCONV DrawDebug( DirectX::FXMMATRIX viewProj );
 	inline btBroadphaseInterface* getPairCache() { return overlappingPairCache; };
+	const float								fixedTimeStep = 1.f/60.f;
 private:
 	void CleanUpDemo();
 	btDefaultCollisionConfiguration*		collisionConfiguration;

@@ -39,7 +39,6 @@ public:
 	FXMMATRIX XM_CALLCONV GetRot();
 	FXMMATRIX XM_CALLCONV GetWorld();
 	void ResetActions();
-	void DebugActionDisplay();
 private:
 	struct Actions {
 		bool Forward;
@@ -103,6 +102,7 @@ private:
 	ID3D11ShaderResourceView*		diffuseView;
 	Material						mat;
 	XMMATRIX						pos;
+	XMMATRIX						importRot;
 	XMMATRIX						rot;
 	XMMATRIX						scale;
 	XMMATRIX						world;
@@ -118,18 +118,18 @@ private:
 	AnimationController				animController;
 
 	//Player movement
-	float							forwardAmount;
-	float							turnAmount;
-	float							strafeAmount;
-	float							forwardSpeed;	// m/s
-	float							turnSpeed;		// rot/s
-	float							strafeSpeed;	// m/s
+	XMFLOAT2						moveDir;
+	XMFLOAT2						moveVel;
+	float							maxVel;
+	float							moveAccel; // m/s/s
+	float							turnAccel; // rad/s/s
+	float							moveDecel; // m/s/s							
 	float							fallSpeed;
 	float							jumpSpeed;
 	float							maxJumpHeight;
-	const float						forwardAngle = XM_PIDIV4/2.f;
-	const float						backwardAngle = XM_PI-XM_PIDIV4/2.f;
+	const float						forwardAngle = XM_PIDIV4/2.f;			// DELETEME
+	const float						backwardAngle = XM_PI-XM_PIDIV4/2.f;	// DELETEME
 	float							jumpTimer;
 	float							attackTimer;
- };
+};
 

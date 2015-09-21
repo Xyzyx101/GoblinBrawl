@@ -15,10 +15,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 {
 #if defined(DEBUG) | defined(_DEBUG)
 	// redirects sdterr and stdout to another window for debugging
-	//if( AttachConsole( ATTACH_PARENT_PROCESS )||AllocConsole() ) {
-	//	freopen( "CONOUT$", "w", stdout );
-	//	freopen( "CONOUT$", "w", stderr );
-	//}
+	if( AttachConsole( ATTACH_PARENT_PROCESS )||AllocConsole() ) {
+		freopen( "CONOUT$", "w", stdout );
+		freopen( "CONOUT$", "w", stderr );
+	}
 #endif
 	
 	UNREFERENCED_PARAMETER(hPrevInstance);

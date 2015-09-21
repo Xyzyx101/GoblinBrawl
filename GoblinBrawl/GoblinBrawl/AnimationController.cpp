@@ -66,6 +66,7 @@ void AnimationController::Interpolate( float dt ) {
 			XMVECTOR low = XMLoadFloat4( &itLow->second );
 			XMVECTOR high = XMLoadFloat4( &itHigh->second );
 			XMVECTOR interp = XMQuaternionSlerp( low, high, factor );
+			XMVECTOR normalized = XMQuaternionNormalize( interp );
 			rotMat = XMMatrixRotationQuaternion( interp );
 		}
 
@@ -124,10 +125,11 @@ void AnimationController::Interpolate( float dt ) {
 		XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
 		XMMATRIX rotY = XMMatrixRotationY( XM_PIDIV2 );
 		XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+		int foo = 17; //DELETEME
 		XMMATRIX flip = XMLoadFloat4x4( &XMFLOAT4X4(
 			1.f, 0.f, 0.f, 0.f,
 			0.f, 1.f, 0.f, 0.f,
-			0.f, 0.f, -1.f, 0.f,
+			0.f, 0.f, 1.f, 0.f,
 			0.f, 0.f, 0.f, 1.f
 			) );
 
@@ -142,7 +144,11 @@ DirectX::XMFLOAT4X4 AnimationController::GetBoneTransform( Bone* bone ) {
 	auto it = finalTransform.find( bone );
 	if( it==finalTransform.end() ) {
 		fprintf( stderr, "Bone Rotation not found : %s\n", bone->name.c_str() );
-		return XMFLOAT4X4();
+		return XMFLOAT4X4(
+			1.f, 0.f, 0.f, 0.f,
+			0.f, 1.f, 0.f, 0.f,
+			0.f, 0.f, 1.f, 0.f,
+			0.f, 0.f, 0.f, 1.f );
 	} else {
 		return it->second;
 	}

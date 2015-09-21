@@ -32,7 +32,7 @@ bool ModelLoader::Load( std::string filename, Vertex::VERTEX_TYPE type ) {
 		//aiProcess_CalcTangentSpace|
 		aiProcess_ImproveCacheLocality|
 		//aiProcess_MakeLeftHanded|
-		//aiProcess_FlipWindingOrder|
+		aiProcess_FlipWindingOrder|
 		aiProcess_Triangulate|
 		//aiProcess_JoinIdenticalVertices|
 		aiProcess_SortByPType|
@@ -108,8 +108,8 @@ void ModelLoader::CreateVertexBuffer( aiMesh* mesh, Vertex::VERTEX_TYPE type ) {
 	{
 		std::vector<Vertex::SimpleVertex> vertData( count );
 		for( UINT i = 0; i<count; ++i ) {
-			UpdateExtents( vertices[i].x, vertices[i].y, -vertices[i].z );
-			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, -vertices[i].z );
+			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
 		}
 		SetVertices( device, count, vertData.data() );
 		break;
@@ -121,8 +121,8 @@ void ModelLoader::CreateVertexBuffer( aiMesh* mesh, Vertex::VERTEX_TYPE type ) {
 		aiVector3D* texCoords = mesh->mTextureCoords[0];
 		std::vector<Vertex::TerrainVertex> vertData( count );
 		for( UINT i = 0; i<count; ++i ) {
-			UpdateExtents( vertices[i].x, vertices[i].y, -vertices[i].z );
-			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, -vertices[i].z );
+			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
 			vertData[i].Normal = XMFLOAT3( normals[i].x, normals[i].y, normals[i].z );
 			vertData[i].Tex = XMFLOAT2( texCoords[i].x, texCoords[i].y );
 		}
@@ -143,9 +143,9 @@ void ModelLoader::CreateVertexBuffer( aiMesh* mesh, Vertex::VERTEX_TYPE type ) {
 		aiVector3D* texCoords = mesh->mTextureCoords[0];
 		std::vector<Vertex::CharacterSkinnedVertex> vertData( count );
 		for( UINT i = 0; i<count; ++i ) {
-			UpdateExtents( vertices[i].x, vertices[i].y, -vertices[i].z );
-			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, -vertices[i].z );
-			vertData[i].Normal = XMFLOAT3( normals[i].x, normals[i].y, -normals[i].z );
+			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Normal = XMFLOAT3( normals[i].x, normals[i].y, normals[i].z );
 			vertData[i].Tex = XMFLOAT2( texCoords[i].x, texCoords[i].y );
 
 			BYTE boneIndices[4] = { 0, 0, 0, 0 };
@@ -202,7 +202,7 @@ void ModelLoader::FindBoneChildren( aiNode* node, int parentIdx ) {
 
 	DirectX::XMMATRIX transformMat = ConvertMatrix( node->mTransformation );
 	bone->localTransform = transformMat;
-	
+
 	if( node->mNumChildren==0 ) { return; }
 	for( int i = 0; i<node->mNumChildren; ++i ) {
 		aiNode* childNode = node->mChildren[i];
@@ -229,6 +229,14 @@ DirectX::XMMATRIX XM_CALLCONV ModelLoader::ConvertMatrix( aiMatrix4x4 inMat ) {
 		inMat.a2, inMat.b2, inMat.c2, inMat.d2,
 		inMat.a3, inMat.b3, inMat.c3, inMat.d3,
 		inMat.a4, inMat.b4, inMat.c4, inMat.d4 );
+	DirectX::XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+	DirectX::XMMATRIX flipY = XMMATRIX(
+		1.f, 0.f, 0.f, 0.f,
+		0.f, -1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f );
+	DirectX::XMMATRIX converted = transposed*rotX*rotZ*flipY;
 	return transposed;
 }
 
@@ -286,14 +294,14 @@ void ModelLoader::CreateAnimations() {
 			keySet_t posKeySet;
 			for( int m = 0; m<aiNodeAnim->mNumPositionKeys; ++m ) {
 				aiVectorKey posKey = aiNodeAnim->mPositionKeys[m];
-				posKeySet[(float)posKey.mTime * timePerFrame] = XMFLOAT4( posKey.mValue.x, posKey.mValue.y, posKey.mValue.z, 0.0f );
+				posKeySet[(float)posKey.mTime * timePerFrame] = XMFLOAT4( posKey.mValue.x, posKey.mValue.y, posKey.mValue.z, 1.0f );
 			}
 			anim->posChannels[bone] = posKeySet;
 
 			keySet_t scaleKeySet;
 			for( int n = 0; n<aiNodeAnim->mNumScalingKeys; ++n ) {
 				aiVectorKey scaleKey = aiNodeAnim->mScalingKeys[n];
-				scaleKeySet[(float)scaleKey.mTime* timePerFrame] = XMFLOAT4( scaleKey.mValue.x, scaleKey.mValue.y, scaleKey.mValue.z, 0.0f );
+				scaleKeySet[(float)scaleKey.mTime* timePerFrame] = XMFLOAT4( scaleKey.mValue.x, scaleKey.mValue.y, scaleKey.mValue.z, 1.0f );
 			}
 			anim->scaleChannels[bone] = scaleKeySet;
 		}

@@ -95,7 +95,7 @@ void PhysicsWorld::SetupDemo() {
 
 void PhysicsWorld::Update( float dt ) {
 	btScalar timeStepInSeconds( dt );
-	dynamicsWorld->stepSimulation( timeStepInSeconds, 10, btScalar(1.0/60.0) );
+	dynamicsWorld->stepSimulation( timeStepInSeconds, 10, fixedTimeStep );
 }
 
 void PhysicsWorld::RunDemo() {

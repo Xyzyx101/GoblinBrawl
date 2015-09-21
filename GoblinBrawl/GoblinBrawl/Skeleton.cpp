@@ -77,6 +77,9 @@ void Skeleton::UpdateTransforms( Bone* bone ) {
 	XMMATRIX offset = bone->offset;
 	XMMATRIX finalTransform;
 	if( bone->parentIdx==-1 ) {
+		DirectX::XMMATRIX rotY = XMMatrixRotationY( XM_PIDIV2 );
+		DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+		localTransform = localTransform*rotZ*rotY;
 		// The root bone
 		toRoot[bone->idx] = localTransform;
 		finalTransform = offset*localTransform;
@@ -170,13 +173,13 @@ void Skeleton::CreateAllShapes() {
 	CreateBoneShape( S_FOOT, boneTarget, btScalar( 0.04 ) );
 
 	boneTarget = GetBoneByName( "Skeleton_Head_Target" );
-	CreateBoneShape(S_HEAD, boneTarget, btScalar( 0.07 ) );
+	CreateBoneShape( S_HEAD, boneTarget, btScalar( 0.07 ) );
 
 	boneTarget = GetBoneByName( "Skeleton_Hand_R" );
-	CreateBoneShape(S_HAND, boneTarget, btScalar( 0.04 ) );
+	CreateBoneShape( S_HAND, boneTarget, btScalar( 0.04 ) );
 
 	boneTarget = GetBoneByName( "Skeleton_Club" );
-	CreateBoneShape(S_CLUB, boneTarget, btScalar( 0.04 ) );
+	CreateBoneShape( S_CLUB, boneTarget, btScalar( 0.04 ) );
 }
 
 void Skeleton::CreateBoneShape( SHAPE shapeName, Bone* target, float radius ) {
@@ -370,7 +373,7 @@ void Skeleton::CreateAllJoints() {
 	j.swingLimit1 = btScalar( debugLimit );
 	j.swingLimit2 = btScalar( debugLimit );
 	j.twistLimit = btScalar( debugLimit );
-	CreateConstraint(J_NECK_HEAD, from, to, j);
+	CreateConstraint( J_NECK_HEAD, from, to, j );
 
 	from = GetBoneByName( "Skeleton_Upper_Spine" );
 	to = GetBoneByName( "Skeleton_Clavicle_L" );
@@ -515,7 +518,7 @@ void Skeleton::CreateAllJoints() {
 	j.fromOffset = btVector3( btScalar( 0. ), btScalar( -shapeLengths[S_LOWER_LEG]*0.5 ), btScalar( 0. ) );
 	j.toOffset = btVector3( btScalar( 0. ), btScalar( -shapeLengths[S_FOOT]*0.5 ), btScalar( 0. ) );
 	j.aRotX = btScalar( 0. ); j.aRotY = btScalar( XM_PIDIV2 ); j.aRotZ = btScalar( XM_PIDIV2 );
-	j.bRotX = btScalar(0.); j.bRotY = btScalar( 0. ); j.bRotZ = btScalar( XM_PIDIV2 );
+	j.bRotX = btScalar( 0. ); j.bRotY = btScalar( 0. ); j.bRotZ = btScalar( XM_PIDIV2 );
 	j.swingLimit1 = btScalar( debugLimit );
 	j.swingLimit2 = btScalar( debugLimit );
 	j.twistLimit = btScalar( debugLimit );
