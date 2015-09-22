@@ -7,7 +7,13 @@ const D3D11_INPUT_ELEMENT_DESC InputLayoutDesc::SimpleVertexDesc[] =
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
-const D3D11_INPUT_ELEMENT_DESC InputLayoutDesc::TerrainVertexDesc[] =
+const D3D11_INPUT_ELEMENT_DESC InputLayoutDesc::StaticGeomVertexDesc[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+const D3D11_INPUT_ELEMENT_DESC InputLayoutDesc::LavaVertexDesc[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -29,7 +35,8 @@ const D3D11_INPUT_ELEMENT_DESC InputLayoutDesc::CharacterSkinnedVertexDesc[] =
 };
 
 ID3D11InputLayout* InputLayouts::Simple = 0;
-ID3D11InputLayout* InputLayouts::Terrain = 0;
+ID3D11InputLayout* InputLayouts::StaticGeom = 0;
+ID3D11InputLayout* InputLayouts::Lava = 0;
 ID3D11InputLayout* InputLayouts::Character = 0;
 ID3D11InputLayout* InputLayouts::CharacterSkinned = 0;
 
@@ -40,9 +47,13 @@ void InputLayouts::InitAll( ID3D11Device* device ) {
 	MyEffects::SimpleFX->simpleTechnique->GetPassByIndex( 0 )->GetDesc( &passDesc );
 	HR( device->CreateInputLayout( InputLayoutDesc::SimpleVertexDesc, 2, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &Simple ) );
 
-	//Terrain
-	MyEffects::TerrainFX->terrainTechnique->GetPassByIndex( 0 )->GetDesc( &passDesc );
-	HR( device->CreateInputLayout( InputLayoutDesc::TerrainVertexDesc, 3, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &Terrain ) );
+	//Static Geometry
+	MyEffects::StaticGeomFX->staticGeomLight5Tech->GetPassByIndex( 0 )->GetDesc( &passDesc );
+	HR( device->CreateInputLayout( InputLayoutDesc::StaticGeomVertexDesc, 3, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &StaticGeom ) );
+
+	//Lava
+	MyEffects::LavaFX->lavaTechnique->GetPassByIndex( 0 )->GetDesc( &passDesc );
+	HR( device->CreateInputLayout( InputLayoutDesc::LavaVertexDesc, 3, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &Lava ) );
 
 	//Character
 	MyEffects::CharacterFX->characterLight5Tech->GetPassByIndex( 0 )->GetDesc( &passDesc );
@@ -55,7 +66,8 @@ void InputLayouts::InitAll( ID3D11Device* device ) {
 
 void InputLayouts::DestroyAll() {
 	ReleaseCOM( Simple );
-	ReleaseCOM( Terrain );
+	ReleaseCOM( StaticGeom );
+	ReleaseCOM( Lava );
 	ReleaseCOM( Character );
 	ReleaseCOM( CharacterSkinned );
 }
