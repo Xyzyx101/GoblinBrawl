@@ -30,14 +30,14 @@ public:
 
 	Goblin();
 	~Goblin();
-	bool Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::KeyboardStateTracker* kb, GamePad* gamepad, PLAYER player, PhysicsWorld* physicsWorld );
+	bool Init( ModelLoader* modelLoader, ID3D11Device* device, DirectX::Keyboard::KeyboardStateTracker* kb, DirectX::GamePad* gamepad, PLAYER player, PhysicsWorld* physicsWorld );
 	void Update( float dt );
-	void XM_CALLCONV Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
-	void XM_CALLCONV SetPos( FXMVECTOR pos );
-	FXMVECTOR XM_CALLCONV getPos();
-	void XM_CALLCONV SetRot( FXMVECTOR rot );
-	FXMMATRIX XM_CALLCONV GetRot();
-	FXMMATRIX XM_CALLCONV GetWorld();
+	void XM_CALLCONV Draw( DirectX::FXMMATRIX viewProj, DirectX::FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
+	void XM_CALLCONV SetPos( DirectX::FXMVECTOR pos );
+	DirectX::FXMVECTOR XM_CALLCONV getPos();
+	void XM_CALLCONV SetRot( DirectX::FXMVECTOR rot );
+	DirectX::FXMMATRIX XM_CALLCONV GetRot();
+	DirectX::FXMMATRIX XM_CALLCONV GetWorld();
 	void ResetActions();
 private:
 	struct Actions {
@@ -96,40 +96,40 @@ private:
 	void Attack_Jump_Update( float dt );
 	void Attack_Jump_After( float dt );
 
-	PLAYER							player;
-	Mesh*							mesh;
-	Skeleton*						skeleton;
-	ID3D11ShaderResourceView*		diffuseView;
-	Material						mat;
-	XMMATRIX						pos;
-	XMMATRIX						importRot;
-	XMMATRIX						rot;
-	XMMATRIX						scale;
-	XMMATRIX						world;
-	XMMATRIX						modelControllerOffset;
-	Keyboard::KeyboardStateTracker*	kb;
-	GamePad*						gamePad;
-	Actions							action;
-	PhysicsWorld*					physicsWorld;
-	btKinematicCharacterController*	controller;
-	btPairCachingGhostObject*		ghostObject;
-	FSM<Goblin>*					fsm;
-	float							movementBearing;
-	AnimationController				animController;
+	PLAYER										player;
+	Mesh*										mesh;
+	Skeleton*									skeleton;
+	ID3D11ShaderResourceView*					diffuseView;
+	Material									mat;
+	DirectX::XMMATRIX							pos;
+	//DirectX::XMMATRIX							importRot;
+	DirectX::XMMATRIX							rot;
+	DirectX::XMMATRIX							scale;
+	DirectX::XMMATRIX							world;
+	DirectX::XMMATRIX							modelControllerOffset;
+	DirectX::Keyboard::KeyboardStateTracker*	kb;
+	DirectX::GamePad*							gamePad;
+	Actions										action;
+	PhysicsWorld*								physicsWorld;
+	btKinematicCharacterController*				controller;
+	btPairCachingGhostObject*					ghostObject;
+	FSM<Goblin>*								fsm;
+	float										movementBearing;
+	AnimationController							animController;
 
 	//Player movement
-	XMFLOAT2						moveDir;
-	XMFLOAT2						moveVel;
-	float							maxVel;
-	float							moveAccel; // m/s/s
-	float							turnAccel; // rad/s/s
-	float							moveDecel; // m/s/s							
-	float							fallSpeed;
-	float							jumpSpeed;
-	float							maxJumpHeight;
-	const float						forwardAngle = XM_PIDIV4/2.f;			// DELETEME
-	const float						backwardAngle = XM_PI-XM_PIDIV4/2.f;	// DELETEME
-	float							jumpTimer;
-	float							attackTimer;
+	DirectX::XMFLOAT2							moveDir;
+	DirectX::XMFLOAT2							moveVel;
+	float										maxVel;
+	float										moveAccel; // m/s/s
+	float										turnAccel; // rad/s/s
+	float										moveDecel; // m/s/s							
+	float										fallSpeed;
+	float										jumpSpeed;
+	float										maxJumpHeight;
+	const float									forwardAngle = DirectX::XM_PIDIV4/2.f;			// DELETEME
+	const float									backwardAngle = DirectX::XM_PI-DirectX::XM_PIDIV4/2.f;	// DELETEME
+	float										jumpTimer;
+	float										attackTimer;
 };
 

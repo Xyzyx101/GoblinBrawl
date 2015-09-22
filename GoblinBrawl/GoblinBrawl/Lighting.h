@@ -6,28 +6,26 @@
 
 class ModelLoader;
 
-using namespace DirectX;
-
 struct PointLight {
-	XMFLOAT4 Ambient;
-	XMFLOAT4 Diffuse;
-	XMFLOAT4 Specular;
+	DirectX::XMFLOAT4 Ambient;
+	DirectX::XMFLOAT4 Diffuse;
+	DirectX::XMFLOAT4 Specular;
 
 	//packed into 4D vector (Position, Range)
-	XMFLOAT3 Position;
+	DirectX::XMFLOAT3 Position;
 	float Range;
 
 	// Packed into 4D vector (A0, A1, A2, Pad)
-	XMFLOAT3 Att;
+	DirectX::XMFLOAT3 Att;
 	float Pad;
 
 };
 
 struct Material {
 	Material() { ZeroMemory( this, sizeof( this ) ); }
-	XMFLOAT4 Ambient;
-	XMFLOAT4 Diffuse;
-	XMFLOAT4 Specular; // w = SpecPower
+	DirectX::XMFLOAT4 Ambient;
+	DirectX::XMFLOAT4 Diffuse;
+	DirectX::XMFLOAT4 Specular; // w = SpecPower
 };
 
 

@@ -7,6 +7,8 @@
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
 
+using namespace DirectX;
+
 FirePlinth::FirePlinth() : 
 mesh (nullptr),
 diffuseView(nullptr)

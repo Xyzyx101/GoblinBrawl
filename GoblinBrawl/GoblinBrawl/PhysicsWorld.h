@@ -1,8 +1,9 @@
 #pragma once
 #include "DirectX_11_1_Includes.h"
 #include "btBulletDynamicsCommon.h"
+#include "BulletDynamics\MLCPSolvers\btDantzigSolver.h"
 
-//#define PHYSICS_DEBUG_MODE
+#define PHYSICS_DEBUG_MODE
 
 class PhysicsDebugDrawer;
 

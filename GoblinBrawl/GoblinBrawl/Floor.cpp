@@ -9,6 +9,8 @@
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "PhysicsWorld.h"
 
+using namespace DirectX;
+
 Floor::Floor() :
 mesh( nullptr ),
 diffuseView( nullptr ),
@@ -153,8 +155,8 @@ BYTE* Floor::GetRawHeightData( int gridSize, float heightScale, btScalar gridSpa
 	Pixel test0 = pixelData[0];
 	Pixel test1 = pixelData[1];
 	Pixel test2 = pixelData[2];
-	float texWidth = heightfieldMap.RowPitch/8; // 8 bytes per pixel
-	float gridToTexScale = texWidth/gridSize;
+	int texWidth = heightfieldMap.RowPitch/8; // 8 bytes per pixel
+	int gridToTexScale = texWidth/gridSize;
 	long nBytes = nElements * bytesPerElement;
 	BYTE * raw = new BYTE[nBytes];
 	btAssert( raw && "out of memory" );
@@ -162,9 +164,9 @@ BYTE* Floor::GetRawHeightData( int gridSize, float heightScale, btScalar gridSpa
 	for( int i = 0; i<gridSize; ++i ) {
 		for( int j = 0; j<gridSize; ++j ) {
 			//float value = 4.75;
-			int xTexCoord = j * gridToTexScale;
-			int yTexCoord = i * gridToTexScale;
-			int pixel = (yTexCoord*texWidth+xTexCoord);
+			int xTexCoord = (int)(j * gridToTexScale);
+			int yTexCoord = (int)(i * gridToTexScale);
+			int pixel = (int)(yTexCoord*texWidth+xTexCoord);
 			float value = (float)(pixelData[pixel].r/65536.f)*heightScale;
 			switch( type ) {
 			case PHY_FLOAT:

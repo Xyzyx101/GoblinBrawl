@@ -7,6 +7,8 @@
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
 
+using namespace DirectX;
+
 Lava::Lava() :
 mesh( nullptr ),
 diffuseView( nullptr ) {}

@@ -12,6 +12,7 @@
 #include "Lighting.h"
 #include "Keyboard.h"
 #include "GamePad.h"
+#include "Audio.h"
 
 class PhysicsWorld;
 
@@ -61,9 +62,10 @@ private:
 	Lighting							lighting;
 	Goblin								goblin;
 	PhysicsWorld*						physicsWorld;
-	std::unique_ptr<Keyboard>			keyboard;
+	std::unique_ptr<DirectX::Keyboard>	keyboard;
 	std::unique_ptr<
-		Keyboard::KeyboardStateTracker>	kbTracker;
-	std::unique_ptr<GamePad>			gamePad;
+		DirectX::Keyboard
+		::KeyboardStateTracker>			kbTracker;
+	std::unique_ptr<DirectX::GamePad>	gamePad;
 };
 

@@ -12,6 +12,8 @@
 
 #define DISPLAY_FPS
 
+using namespace DirectX;
+
 namespace {
 	// This is just used to forward Windows messages from a global window
 	// procedure to our member function window procedure because we cannot
@@ -348,7 +350,7 @@ int Game::Run() {
 		}
 		// Otherwise, do animation/game stuff.
 		else {
-			//Sleep( 10 ); //FIXME - this is a terrible hack because the framerate is so high it breaks physics remove it
+			Sleep( 10 ); //FIXME - this is a terrible hack because the framerate is so high it breaks physics remove it
 			timer.Tick();
 			if( !paused ) {
 #ifdef DISPLAY_FPS

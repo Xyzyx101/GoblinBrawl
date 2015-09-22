@@ -2,6 +2,8 @@
 #include "PhysicsDebugDrawer.h"
 #include "MyEffects.h"
 
+using namespace DirectX;
+
 PhysicsDebugDrawer::PhysicsDebugDrawer() : ctx(nullptr) 
 {}
 

@@ -7,6 +7,8 @@
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
 
+using namespace DirectX;
+
 Walls::Walls() :
 mesh( nullptr ),
 diffuseView( nullptr ) {}

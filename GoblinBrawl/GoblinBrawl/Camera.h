@@ -1,7 +1,6 @@
 #pragma once
 #include "DirectX_11_1_Includes.h"
 
-using namespace DirectX;
 class Camera {
 public:
 	Camera();
@@ -10,16 +9,16 @@ public:
 
 	// Update expects the charactor pos and dir. The camera offset and
 	// target will be calculated by the Update function.
-	void XM_CALLCONV Update( FXMVECTOR pos, FXMVECTOR target);
-	void XM_CALLCONV UpdateFollow( FXMMATRIX world );
-	XMMATRIX XM_CALLCONV GetViewProj();
-	XMVECTOR XM_CALLCONV GetPos();
+	void XM_CALLCONV Update( DirectX::FXMVECTOR pos, DirectX::FXMVECTOR target );
+	void XM_CALLCONV UpdateFollow( DirectX::FXMMATRIX world );
+	DirectX::XMMATRIX XM_CALLCONV GetViewProj();
+	DirectX::XMVECTOR XM_CALLCONV GetPos();
 private:
-	XMVECTOR pos;
-	XMMATRIX view;
-	XMMATRIX proj;
-	XMVECTOR up;
-	XMMATRIX viewProj;
+	DirectX::XMVECTOR pos;
+	DirectX::XMMATRIX view;
+	DirectX::XMMATRIX proj;
+	DirectX::XMVECTOR up;
+	DirectX::XMMATRIX viewProj;
 	FLOAT nearZ;
 	FLOAT farZ;
 	FLOAT fovAngleY;

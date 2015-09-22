@@ -2,6 +2,8 @@
 #include "PhysicsWorld.h"
 #include "PhysicsDebugDrawer.h"
 
+using namespace DirectX;
+
 PhysicsWorld::PhysicsWorld() :
 debugDrawer( nullptr ) {}
 
@@ -95,7 +97,7 @@ void PhysicsWorld::SetupDemo() {
 
 void PhysicsWorld::Update( float dt ) {
 	btScalar timeStepInSeconds( dt );
-	dynamicsWorld->stepSimulation( timeStepInSeconds, 10, fixedTimeStep );
+	dynamicsWorld->stepSimulation( timeStepInSeconds, 100, fixedTimeStep );
 }
 
 void PhysicsWorld::RunDemo() {

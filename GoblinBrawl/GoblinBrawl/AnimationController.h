@@ -25,13 +25,15 @@ public:
 	void ChangeAnim( ANIM_NAME anim );
 	void Interpolate( float dt );
 	float GetAnimTime(ANIM_NAME anim);
-	DirectX::XMFLOAT4X4 GetBoneRotation( Bone* bone);
+	DirectX::XMFLOAT4 GetBoneRotation( Bone* bone);
 	DirectX::XMFLOAT4X4 GetBoneTransform( Bone* bone );
+	float GetBoneVelocity( Bone* bone );
 private:
 	float									timeSinceStart;
 	Anim*									anims[_ANIM_COUNT];
 	ANIM_NAME								currentAnim;
 	std::map<Bone*, DirectX::XMFLOAT4X4>	finalTransform;
+	std::map<Bone*, float>					finalVelocityFactor;
 	Skeleton*								skeleton;
 };
 

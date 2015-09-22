@@ -11,6 +11,8 @@
 #include "Bullet/BulletDynamics/Character/btKinematicCharacterController.h"
 #include "Bullet/BulletCollision/CollisionDispatch/btGhostObject.h"
 
+using namespace DirectX;
+
 Goblin::Goblin() :
 mesh( nullptr ),
 diffuseView( nullptr ),
@@ -34,7 +36,7 @@ Goblin::~Goblin() {
 
 bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::KeyboardStateTracker* kb, GamePad* gamePad, PLAYER player, PhysicsWorld* physicsWorld ) {
 	// Model
-	modelLoader->Load( "Goblin4_0006_Export.fbx", Vertex::CHARACTER_SKINNED );
+	modelLoader->Load( "Goblin4_0007_Export.fbx", Vertex::CHARACTER_SKINNED );
 	mesh = modelLoader->GetMesh();
 	if( mesh->VB()==nullptr ) {
 		return false;
@@ -60,9 +62,9 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	XMVECTOR xmVectorPos = XMLoadFloat4( &goblinPos );
 	SetPos( xmVectorPos );
 	rot = XMMatrixIdentity();
-	XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
-	XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-	importRot = rotX*rotZ;
+	//XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+	//importRot = rotX*rotZ;
 	scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f ); //FBX scale
 
 	// Keyboard Controller

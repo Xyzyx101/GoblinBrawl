@@ -1,8 +1,6 @@
 #pragma once
 #include "DirectX_11_1_Includes.h"
 
-using namespace DirectX;
-
 namespace Vertex {
 	enum VERTEX_TYPE {
 		SIMPLE,
@@ -11,24 +9,24 @@ namespace Vertex {
 		CHARACTER_SKINNED
 	};
 	struct SimpleVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT4	Color;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT4	Color;
 	};
 	struct TerrainVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT3	Normal;
-		XMFLOAT2	Tex;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT3	Normal;
+		DirectX::XMFLOAT2	Tex;
 	};
 	struct CharacterVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT3	Normal;
-		XMFLOAT2	Tex;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT3	Normal;
+		DirectX::XMFLOAT2	Tex;
 	};
 	struct CharacterSkinnedVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT3	Normal;
-		XMFLOAT2	Tex;
-		XMFLOAT4	Weights;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT3	Normal;
+		DirectX::XMFLOAT2	Tex;
+		DirectX::XMFLOAT4	Weights;
 		BYTE		BoneIndicies[4];
 	};
 }

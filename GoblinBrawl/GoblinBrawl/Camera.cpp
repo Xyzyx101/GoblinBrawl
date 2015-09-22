@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "Camera.h"
 
+using namespace DirectX;
+
 Camera::Camera() :
 nearZ( 1.f ),
 farZ( 10000.f ),

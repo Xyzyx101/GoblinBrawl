@@ -8,6 +8,8 @@
 #include "Skeleton.h"
 #include "AnimationController.h"
 
+using namespace DirectX;
+
 ModelLoader::ModelLoader( ID3D11Device* device, std::string modelDir, std::string textureDir ) :
 device( device ),
 modelDir( modelDir ),

@@ -20,7 +20,7 @@ public:
 	Floor();
 	~Floor();
 	bool Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* physicsWorld );
-	void XM_CALLCONV Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
+	void XM_CALLCONV Draw( DirectX::FXMMATRIX viewProj, DirectX::FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
 private:
 	void CreateHeightfield( float minX, float maxX, float minY, float maxY, float minZ, float maxZ );
 	BYTE* GetRawHeightData( int gridSize, float heightScale, btScalar gridSpacing, PHY_ScalarType type );

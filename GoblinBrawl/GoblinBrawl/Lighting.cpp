@@ -2,6 +2,8 @@
 #include "Lighting.h"
 #include "ModelLoader.h"
 
+using namespace DirectX;
+
 Lighting::Lighting() {}
 
 Lighting::~Lighting() {}
