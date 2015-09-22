@@ -5,6 +5,10 @@ Camera::Camera() :
 nearZ( 1.f ),
 farZ( 10000.f ),
 camType(0),
+pos( XMVectorSet( 0.f, 10.f, 20.1f, 1.0f ) ),
+target( XMVectorSet( 0.f, 1.f, 0.f, 1.0f ) ),
+right( XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ) ),
+look( XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f) ),
 fovAngleY( XM_PIDIV4 ) {}
 
 Camera::~Camera() {}
@@ -15,27 +19,18 @@ void Camera::Init( float aspectRatio ) {
 	proj = XMMatrixPerspectiveFovRH( fovAngleY, aspectRatio, nearZ, farZ );
 }
 
-void XM_CALLCONV Camera::Update( FXMVECTOR _pos, FXMVECTOR target ) {
-	pos = _pos;
+void XM_CALLCONV Camera::Update() {
+	
+	if( GetCamType()==1 ) {
+	} else {
+		// default, everything else (GAME MODE)
+		pos = XMVectorSet( 0.f, 10.f, 20.1f, 1.f );
+		target = XMVectorSet( 0.f, 1.f, 0.f, 1.0f );
+	}
+	
 	view = XMMatrixLookAtRH( pos, target, up );
 	viewProj = view*proj;
 }
-
-/*
-void XM_CALLCONV Camera::UpdateFollow( FXMMATRIX world ) {
-	if( camType==1 ) {
-		XMVECTOR target = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, -100.f, 1.f ) ), world );
-		XMVECTOR pos = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 200.f, 200.f, 1.f ) ), world );
-		
-		Update( pos, target );
-	} else {
-		// anything else is default
-		XMVECTOR target = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, -800.f, 1.f ) ), world );
-		XMVECTOR pos = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 200.f, 500.f, 1.f ) ), world );
-		Update( pos, target );
-	}
-}
-*/
 
 XMMATRIX XM_CALLCONV Camera::GetViewProj() {
 	return viewProj;
@@ -43,6 +38,19 @@ XMMATRIX XM_CALLCONV Camera::GetViewProj() {
 
 XMVECTOR XM_CALLCONV Camera::GetPos() {
 	return pos;
+}
+
+void XM_CALLCONV Camera::SetPos( float x, float y, float z, float w) {
+	float currX = XMVectorGetX( pos );
+	float currY = XMVectorGetY( pos );
+	float currZ = XMVectorGetZ( pos );
+	float currW = XMVectorGetW( pos );
+
+	pos = XMVectorSetX( pos, ( currX + x ));
+	pos = XMVectorSetY( pos, ( currY + y ));
+	pos = XMVectorSetZ( pos, ( currZ + z ));
+	pos = XMVectorSetW( pos, ( currW + w ));
+	Update();
 }
 
 UINT XM_CALLCONV Camera::GetCamType() {
@@ -54,10 +62,24 @@ void XM_CALLCONV Camera::SetCamType( UINT incTypeNum ) {
 	// 0 = default, normal game camera the way it should be played
 	// 1 = dev view, move camera around freely using keyboard arrow keys
 	// toggle through settings, increase maxCamTypes here if more are made
-	UINT maxCamTypes = 1; // 0 and 1
-	if( incTypeNum >= maxCamTypes ) {
+	
+	if( incTypeNum >= MAXCAMTYPES ) {
 		camType = 0;
 	} else {
 		camType++;
 	}
+}
+
+void XM_CALLCONV Camera::Strafe( float distance ) {
+	XMVECTOR s = XMVectorReplicate( distance );
+	XMVECTOR r = right;
+	XMVECTOR p = pos;
+	pos = XMVectorMultiplyAdd( s, r, p );
+}
+
+void XM_CALLCONV Camera::Walk( float distance ) {
+	XMVECTOR s = XMVectorReplicate( distance );
+	XMVECTOR l = look;
+	XMVECTOR p = pos;
+	pos = XMVectorMultiplyAdd( s, l, p );
 }

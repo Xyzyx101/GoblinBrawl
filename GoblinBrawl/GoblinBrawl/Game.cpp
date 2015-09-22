@@ -333,6 +333,30 @@ LRESULT Game::MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
 			UINT newCamType = incCamType++;
 			camera.SetCamType(newCamType);
 		}
+		if( GetAsyncKeyState( VK_LEFT ) ) {
+			// camera strafe left
+			if( camera.GetCamType()==1 ) {
+				camera.Strafe( -0.3f );
+			}
+		}
+		if( GetAsyncKeyState( VK_RIGHT ) ) {
+			// camera strafe right
+			if( camera.GetCamType()==1 ) {
+				camera.Strafe( 0.3f );
+			}
+		}
+		if( GetAsyncKeyState( VK_UP ) ) {
+			// camera move forward
+			if( camera.GetCamType()==1 ) {
+				camera.Walk( -0.3f );
+			}
+		}
+		if( GetAsyncKeyState( VK_DOWN ) ) {
+			// camera move back
+			if( camera.GetCamType()==1 ) {
+				camera.Walk( 0.3f );
+			}
+		}
 	case WM_SYSKEYDOWN: // no break
 	case WM_KEYUP:		// no break
 	case WM_SYSKEYUP:
@@ -464,19 +488,7 @@ void Game::Update( float dt ) {
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
 	
-	UINT cameraType = camera.GetCamType();
-	if( cameraType==1 ) {
-		// mode 1, free view (DEBUG MODE)
-		XMVECTOR camPos = XMVectorSet( 0.f, 10.f, 10.0f, 1.f ); 
-		XMVECTOR targetPos = XMVectorSet( 0.f, 1.f, 0.f, 1.0f );
-		camera.Update( camPos, targetPos );
-	} else {
-		// default, everything else (GAME MODE)
-		XMVECTOR camPos = XMVectorSet( 0.f, 10.f, 20.1f, 1.f ); 
-		XMVECTOR targetPos = XMVectorSet( 0.f, 1.f, 0.f, 1.0f );
-		camera.Update( camPos, targetPos );
-	}
-	
+	camera.Update();
 	
 	//camera.UpdateFollow(  goblin.GetWorld() );
 }
