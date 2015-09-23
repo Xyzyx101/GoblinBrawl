@@ -20,7 +20,7 @@ Floor::~Floor() {}
 
 bool Floor::Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* physicsWorld ) {
 	this->device = device;
-	modelLoader->Load( "floor.lxo", Vertex::TERRAIN );
+	modelLoader->Load( "floor.lxo", Vertex::STATIC_GEOMETRY );
 	mesh = modelLoader->GetMesh();
 	if( !mesh ) {
 		return false;
@@ -37,9 +37,9 @@ bool Floor::Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* 
 }
 
 void XM_CALLCONV Floor::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context ) {
-	context->IASetInputLayout( InputLayouts::Terrain );
+	context->IASetInputLayout( InputLayouts::StaticGeom );
 	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	UINT stride = sizeof( Vertex::TerrainVertex );
+	UINT stride = sizeof( Vertex::StaticGeomVertex );
 	UINT offset = 0;
 	ID3D11Buffer* buffers[1] = { mesh->VB() };
 	context->IASetVertexBuffers( 0, 1, &buffers[0], &stride, &offset );

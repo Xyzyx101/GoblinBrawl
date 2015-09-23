@@ -17,7 +17,7 @@ diffuseView(nullptr)
 FirePlinth::~FirePlinth() {}
 
 bool FirePlinth::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
-	modelLoader->Load( "firePlinth.lxo", Vertex::TERRAIN );
+	modelLoader->Load( "firePlinth.lxo", Vertex::STATIC_GEOMETRY );
 	mesh = modelLoader->GetMesh();
 	if( !mesh ) {
 		return false;
@@ -30,9 +30,9 @@ bool FirePlinth::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
 }
 
 void XM_CALLCONV FirePlinth::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context ) {
-	context->IASetInputLayout( InputLayouts::Terrain );
+	context->IASetInputLayout( InputLayouts::StaticGeom );
 	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	UINT stride = sizeof( Vertex::TerrainVertex );
+	UINT stride = sizeof( Vertex::StaticGeomVertex );
 	UINT offset = 0;
 	ID3D11Buffer* buffers[1] = { mesh->VB() };
 	context->IASetVertexBuffers( 0, 1, &buffers[0], &stride, &offset );

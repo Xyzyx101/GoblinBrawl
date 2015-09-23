@@ -116,12 +116,25 @@ void ModelLoader::CreateVertexBuffer( aiMesh* mesh, Vertex::VERTEX_TYPE type ) {
 		SetVertices( device, count, vertData.data() );
 		break;
 	}
-	case Vertex::CHARACTER:
-	case Vertex::TERRAIN:
+	case Vertex::STATIC_GEOMETRY:
 	{
 		aiVector3D* normals = mesh->mNormals;
 		aiVector3D* texCoords = mesh->mTextureCoords[0];
-		std::vector<Vertex::TerrainVertex> vertData( count );
+		std::vector<Vertex::StaticGeomVertex> vertData( count );
+		for( UINT i = 0; i<count; ++i ) {
+			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Normal = XMFLOAT3( normals[i].x, normals[i].y, normals[i].z );
+			vertData[i].Tex = XMFLOAT2( texCoords[i].x, texCoords[i].y );
+		}
+		SetVertices( device, count, vertData.data() );
+		break;
+	}
+	case Vertex::LAVA:
+	{
+		aiVector3D* normals = mesh->mNormals;
+		aiVector3D* texCoords = mesh->mTextureCoords[0];
+		std::vector<Vertex::LavaVertex> vertData( count );
 		for( UINT i = 0; i<count; ++i ) {
 			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
 			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );

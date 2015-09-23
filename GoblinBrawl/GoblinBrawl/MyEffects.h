@@ -28,15 +28,15 @@ public:
 	ID3DX11EffectMatrixVariable*	worldViewProj;
 };
 
-class TerrainEffect : public MyEffect {
+class LavaEffect : public MyEffect {
 public:
-	TerrainEffect( ID3D11Device* device, const std::wstring& filename );
-	~TerrainEffect();
+	LavaEffect( ID3D11Device* device, const std::wstring& filename );
+	~LavaEffect();
 	void XM_CALLCONV SetWorld( DirectX::FXMMATRIX m ) { world->SetMatrix( reinterpret_cast<const float*>(&m) ); }
 	void XM_CALLCONV SetWorldInvTranspose( DirectX::FXMMATRIX m ) { worldInvTranspose->SetMatrix( reinterpret_cast<const float*>(&m) ); }
 	void XM_CALLCONV SetWorldViewProj( DirectX::FXMMATRIX m ) { worldViewProj->SetMatrix( reinterpret_cast<const float*>(&m) ); }
 	void SetDiffuseMap( ID3D11ShaderResourceView* srv ) { diffuseMap->SetResource( srv ); }
-	ID3DX11EffectTechnique*					terrainTechnique;
+	ID3DX11EffectTechnique*					lavaTechnique;
 	ID3DX11EffectMatrixVariable*			world;
 	ID3DX11EffectMatrixVariable*			worldInvTranspose;
 	ID3DX11EffectMatrixVariable*			worldViewProj;
@@ -113,10 +113,10 @@ public:
 	static void InitAll( ID3D11Device* device );
 	static void DestroyAll();
 
-	static SimpleEffect* SimpleFX;
-	static TerrainEffect* TerrainFX;
-	static StaticGeomEffect* StaticGeomFX;
-	static CharacterEffect* CharacterFX;
-	static CharacterSkinnedEffect* CharacterSkinnedFX;
+	static SimpleEffect*			SimpleFX;
+	static LavaEffect*				LavaFX;
+	static StaticGeomEffect*		StaticGeomFX;
+	static CharacterEffect*			CharacterFX;
+	static CharacterSkinnedEffect*	CharacterSkinnedFX;
 };
 
