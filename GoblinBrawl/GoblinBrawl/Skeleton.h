@@ -137,9 +137,10 @@ public:
 	void SetAnimationController( AnimationController* animationController );
 	void Update( float dt );
 private:
-	void UpdateLocalTransforms();
+	void UpdateLocalTransformsFromAnimation();
 	void UpdateLocalTransformsFromRagdoll();
 	void UpdateTransforms( Bone* bone );
+	void UpdateTransformsFromRagdoll( Bone* bone );
 	void CreateAllShapes();
 	void CreateAllBodies();
 	VOID CreateAllJoints();

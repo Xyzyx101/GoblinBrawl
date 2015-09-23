@@ -14,14 +14,14 @@ namespace Vertex {
 		DirectX::XMFLOAT4	Color;
 	};
 	struct StaticGeomVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT3	Normal;
-		XMFLOAT2	Tex;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT3	Normal;
+		DirectX::XMFLOAT2	Tex;
 	};
 	struct LavaVertex {
-		XMFLOAT3	Pos;
-		XMFLOAT3	Normal;
-		XMFLOAT2	Tex;
+		DirectX::XMFLOAT3	Pos;
+		DirectX::XMFLOAT3	Normal;
+		DirectX::XMFLOAT2	Tex;
 	};
 	struct CharacterVertex {
 		DirectX::XMFLOAT3	Pos;

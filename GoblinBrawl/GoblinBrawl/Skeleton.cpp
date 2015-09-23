@@ -69,11 +69,13 @@ DirectX::XMFLOAT4X4* Skeleton::GetFinalTransforms() {
 	toRoot.resize( numBones );
 	if( useRagdoll ) {
 		UpdateLocalTransformsFromRagdoll();
+		//Bone* root = GetBoneByName( "Skeleton_Root" );
+		//UpdateTransformsFromRagdoll( root );
 	} else {
-		UpdateLocalTransforms();
+		UpdateLocalTransformsFromAnimation();
+		Bone* root = GetBoneByName( "Skeleton_Root" );
+		UpdateTransforms( root );
 	}
-	Bone* root = GetBoneByName( "Skeleton_Root" );
-	UpdateTransforms( root );
 	return finalTransformData;
 }
 
@@ -92,15 +94,6 @@ void Skeleton::UpdateTransforms( Bone* bone ) {
 	XMMATRIX offset = bone->offset;
 	XMMATRIX finalTransform;
 	if( bone->parentIdx==-1 ) {
-		// TODO clean this up
-		DirectX::XMMATRIX offset = bone->offset;
-		//DirectX::XMVECTOR det = XMMatrixDeterminant( offset );
-		//DirectX::XMMATRIX offsetInverse = XMMatrixInverse( &det, offset );
-		//DirectX::XMMATRIX rotY = XMMatrixRotationY( XM_PIDIV2 );
-		//DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-		//DirectX::XMMATRIX otherWay = localTransform*offsetInverse;
-		//localTransform = localTransform*rotZ*rotY;
-
 		// The root bone
 		toRoot[bone->idx] = localTransform;
 		finalTransform = offset*localTransform;
@@ -119,12 +112,9 @@ void Skeleton::UpdateTransforms( Bone* bone ) {
 	}
 }
 
-void Skeleton::UpdateLocalTransforms() {
-	//FIXME
-	//return;
+void Skeleton::UpdateLocalTransformsFromAnimation() {
 	for( auto it:nameBones ) {
 		Bone* bone = it.second;
-		//XMMATRIX currentTransform = bone->localTransform;
 		XMMATRIX newBoneTransform = XMLoadFloat4x4( &animationController->GetBoneTransform( bone ) );
 		if( XMMatrixIsIdentity( newBoneTransform ) ) {
 			return; //This means there is no animation channel for this bone
@@ -156,11 +146,14 @@ void Skeleton::UpdateLocalTransformsFromRagdoll() {
 
 		XMVECTOR quat = XMVectorSet( jointRot.x(), jointRot.y(), jointRot.z(), jointRot.w() );
 		XMMATRIX rot = XMMatrixRotationQuaternion( quat );
+		XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+		XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+		rot = rot*rotX*rotZ;
 
 		XMMATRIX scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f );
 
 		XMMATRIX boneWorld = scale*rot*translate;
-		
+
 		//XMMATRIX offset = bone->offset;
 
 		//XMMATRIX x = offset*boneWorld;
@@ -168,15 +161,19 @@ void Skeleton::UpdateLocalTransformsFromRagdoll() {
 		//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
 		//XMMATRIX fixedBoneWorld = x*rotZ*rotY;
 
-		XMMATRIX rootXform = XMLoadFloat4x4( &rootTransform );
+		XMMATRIX modelXform = XMLoadFloat4x4( &rootTransform );
 		Bone* rootBone = GetBoneByIndex( 0 );
-		XMMATRIX rootBoneXform = rootBone->localTransform;
-		XMMATRIX modelWorld = rootXform*rootBoneXform;
-		XMVECTOR det = XMMatrixDeterminant( modelWorld );
-		XMMATRIX modelInverseWorld = XMMatrixInverse( &det, modelWorld );
-		XMMATRIX newLocal = modelInverseWorld*boneWorld;
+		XMVECTOR det = XMMatrixDeterminant( modelXform );
+		XMMATRIX modelInverseWorld = XMMatrixInverse( &det, modelXform );
+		XMMATRIX boneModelSpace = boneWorld*modelInverseWorld;
 
-		bone->localTransform = newLocal;
+		XMMATRIX rootBoneXform = rootBone->localTransform;
+		XMMATRIX boneToRoot = boneModelSpace*rootBoneXform;
+
+		XMMATRIX offset = bone->offset;
+		//XMMATRIX finalTransform = offset*boneToRoot;
+		XMMATRIX finalTransform = offset*boneModelSpace;
+		DirectX::XMStoreFloat4x4( &finalTransformData[bone->idx], finalTransform );
 	}
 }
 
@@ -265,7 +262,7 @@ void Skeleton::CreateAllBodies() {
 	btRigidBody* body;
 
 	bone = GetBoneByName( "Skeleton_Hips" );
-	body = CreateBoneBody( bone, shapes[S_HIPS], btScalar( 800.0 ), btScalar( 0. ), btScalar( 0. ), btScalar( 0. ) );
+	body = CreateBoneBody( bone, shapes[S_HIPS], btScalar( 20.0 ), btScalar( 0. ), btScalar( 0. ), btScalar( 0. ) );
 	bone->body = bodies[HIPS] = body;
 
 	bone = GetBoneByName( "Skeleton_Lower_Spine" );
@@ -349,7 +346,7 @@ void Skeleton::CreateAllBodies() {
 		if( bodies[i]==nullptr ) {
 			continue; //this check is only required during debug/building the skeleton
 		}
-		bodies[i]->setDamping( 0.1, 0.85 );
+		bodies[i]->setDamping( 0.9, 0.85 );
 		bodies[i]->setDeactivationTime( 0.8 );
 		bodies[i]->setSleepingThresholds( 1.6, 2.5 );
 	}
@@ -995,7 +992,9 @@ void Skeleton::InitMotorData() {
 
 	float debugMotorImpulse = 10.f;
 
-	MotorData* motor = new MotorData();
+	void* ptr = btAlignedAlloc( sizeof( MotorData ), 16 );
+
+	MotorData* motor = new(ptr)MotorData();
 	Bone* bone = GetBoneByName( "Skeleton_Root" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1006,7 +1005,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_ROOT_HIP] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Hips" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1017,7 +1016,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_HIP_LOWER_SPINE] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Lower_Spine" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1028,7 +1027,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_LOWER_UPPER_SPINE] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Upper_Spine" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1039,7 +1038,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_SPINE_NECK] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Neck" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1050,7 +1049,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_NECK_HEAD] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Clavicle_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1061,7 +1060,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_CLAVICLE_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Clavicle_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1072,7 +1071,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_CLAVICLE_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Shoulder_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1083,7 +1082,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_SHOULDER_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Shoulder_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1094,7 +1093,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_SHOULDER_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Elbow_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1105,7 +1104,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_ELBOW_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Elbow_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1116,7 +1115,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_ELBOW_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Wrist_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1127,7 +1126,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_WRIST_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Wrist_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1138,7 +1137,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_WRIST_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Hand_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1149,7 +1148,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_HAND_CLUB] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_UpperLeg_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1160,7 +1159,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_HIP_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_UpperLeg_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1171,7 +1170,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_HIP_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_LowerLeg_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1182,7 +1181,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_KNEE_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_LowerLeg_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1193,7 +1192,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_KNEE_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Ankle_L" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1204,7 +1203,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_ANKLE_L] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Ankle_R" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1215,7 +1214,7 @@ void Skeleton::InitMotorData() {
 	motor->velocityFactor = 1.f;
 	motors[J_ANKLE_R] = motor;
 
-	motor = new MotorData();
+	motor = new(ptr)MotorData();
 	bone = GetBoneByName( "Skeleton_Club" );
 	motor->boneIdx = bone->idx;
 	motor->motorEnabled = true;
@@ -1272,5 +1271,5 @@ void Skeleton::SetAllMotors( float dt ) {
 
 /*
 btVector3 RagdollDemo::pointWorldToLocal( int bodyIndex, btVector3 worldPoint ) {
-	return body[bodyIndex]->getCenterOfMassTransform().inverse()(worldPoint);
+return body[bodyIndex]->getCenterOfMassTransform().inverse()(worldPoint);
 }*/
