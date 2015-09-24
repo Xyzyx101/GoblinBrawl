@@ -1,59 +1,215 @@
 #include "stdafx.h"
 #include "Camera.h"
+#include "Goblin.h"
 
 Camera::Camera() :
-nearZ( 1.f ),
-farZ( 10000.f ),
-camType(0),
-pos( XMVectorSet( 0.f, 10.f, 20.1f, 1.0f ) ),
-target( XMVectorSet( 0.f, 1.f, 0.f, 1.0f ) ),
-right( XMVectorSet( 1.0f, 0.0f, 0.0f, 0.0f ) ),
-look( XMVectorSet( 0.0f, 0.0f, 1.0f, 0.0f) ),
-fovAngleY( XM_PIDIV4 ) {}
+pos( 8.0f, 5.0f, 0.0f ),
+right( 1.0f, 0.0f, 0.0f ),
+up( 0.0f, 1.0f, 0.0f ),
+look( 0.0f, 0.5f, 1.0f )
+{
+	SetLens( 0.2f, 1.0f, 0.0f, 1000.0f );
+}
 
 Camera::~Camera() {}
 
-void Camera::Init( float aspectRatio ) {
-	view = XMMatrixIdentity();
-	up = XMVectorSet( 0.f, 1.f, 0.f, 0.f );
-	proj = XMMatrixPerspectiveFovRH( fovAngleY, aspectRatio, nearZ, farZ );
-}
-
-void XM_CALLCONV Camera::Update() {
+void XM_CALLCONV Camera::Update( float deltaTime ) {
 	
-	if( GetCamType()==1 ) {
-	} else {
-		// default, everything else (GAME MODE)
-		pos = XMVectorSet( 0.f, 10.f, 20.1f, 1.f );
-		target = XMVectorSet( 0.f, 1.f, 0.f, 1.0f );
+	if( GetAsyncKeyState( VK_HOME ) ) {
+		UINT incCamType = GetCamType();
+		UINT newCamType = incCamType++;
+		SetCamType( newCamType );
 	}
-	
-	view = XMMatrixLookAtRH( pos, target, up );
-	viewProj = view*proj;
+	if( GetAsyncKeyState( VK_LEFT ) ) {
+		// camera strafe left
+		if( GetCamType()==1 ) {
+			Strafe( -15.0f * deltaTime );
+		}
+	}
+	if( GetAsyncKeyState( VK_RIGHT ) ) {
+		// camera strafe right
+		if( GetCamType()==1 ) {
+			Strafe( 15.0f * deltaTime );
+		}
+	}
+	if( GetAsyncKeyState( VK_UP ) ) {
+		// camera move forward
+		if( GetCamType()==1 ) {
+			Walk( -15.0f * deltaTime );
+		}
+	}
+	if( GetAsyncKeyState( VK_DOWN ) ) {
+		// camera move back
+		if( GetCamType()==1 ) {
+			Walk( 15.0f * deltaTime );
+		}
+	}
+
+	UpdateViewMatrix();
 }
 
-XMMATRIX XM_CALLCONV Camera::GetViewProj() {
-	return viewProj;
+XMVECTOR Camera::GetPosXM() const {
+	return XMLoadFloat3( &pos );
 }
-
-XMVECTOR XM_CALLCONV Camera::GetPos() {
+XMFLOAT3 Camera::GetPos() const {
 	return pos;
 }
-
-void XM_CALLCONV Camera::SetPos( float x, float y, float z, float w) {
-	float currX = XMVectorGetX( pos );
-	float currY = XMVectorGetY( pos );
-	float currZ = XMVectorGetZ( pos );
-	float currW = XMVectorGetW( pos );
-
-	pos = XMVectorSetX( pos, ( currX + x ));
-	pos = XMVectorSetY( pos, ( currY + y ));
-	pos = XMVectorSetZ( pos, ( currZ + z ));
-	pos = XMVectorSetW( pos, ( currW + w ));
-	Update();
+void Camera::SetPos( float x, float y, float z ) {
+	pos = XMFLOAT3( x, y, z );
+}
+void Camera::SetPos( const XMFLOAT3& v ) {
+	pos = v;
+}
+XMVECTOR Camera::GetRightXM() const {
+	return XMLoadFloat3( &right );
+}
+XMFLOAT3 Camera::GetRight() const {
+	return right;
+}
+XMVECTOR Camera::GetUpXM() const {
+	return XMLoadFloat3( &up );
+}
+XMFLOAT3 Camera::GetUp() const {
+	return up;
+}
+XMVECTOR Camera::GetLookXM() const {
+	return XMLoadFloat3( &look );
+}
+XMFLOAT3 Camera::GetLook() const {
+	return look;
+}
+float Camera::GetNearZ() const {
+	return nearZ;
+}
+float Camera::GetFarZ() const {
+	return farZ;
+}
+float Camera::GetAspect() const {
+	return aspect;
+}
+float Camera::GetFovY() const {
+	return fovY;
+}
+float Camera::GetFovX() const {
+	float halfWidth = 0.5f * GetNearWindowWidth();
+	return 2.0f * atan( halfWidth/nearZ );
+}
+float Camera::GetNearWindowWidth() const {
+	return aspect * nearWindowHeight;
+}
+float Camera::GetNearWindowHeight() const {
+	return nearWindowHeight;
+}
+float Camera::GetFarWindowWidth() const {
+	return aspect * farWindowHeight;
+}
+float Camera::GetFarWindowHeight() const {
+	return farWindowHeight;
 }
 
-UINT XM_CALLCONV Camera::GetCamType() {
+void Camera::SetLens(float ifovAngleY, float iaspect, float inear, float ifar) {
+	fovY = ifovAngleY;
+	aspect = iaspect;
+	nearZ = inear;
+	farZ = ifar;
+	nearWindowHeight = 2.0f * nearZ * tanf( 0.5f * fovY );
+	farWindowHeight = 2.0f * farZ * tanf( 0.5f * fovY );
+
+	XMMATRIX P = XMMatrixPerspectiveFovRH( fovY, aspect, nearZ, farZ );
+	XMStoreFloat4x4( &proj, P );
+}
+
+void XM_CALLCONV Camera::LookAt( FXMVECTOR iPos, FXMVECTOR iTarget, FXMVECTOR iUp ) {
+	XMVECTOR L = XMVector3Normalize( XMVectorSubtract( iTarget, iPos ) );
+	XMVECTOR R = XMVector3Normalize( XMVector3Cross( iUp, L ) );
+	XMVECTOR U = XMVector3Cross( L, R );
+
+	XMStoreFloat3( &pos, iPos );
+	XMStoreFloat3( &look, L );
+	XMStoreFloat3( &right, R );
+	XMStoreFloat3( &up, U );
+}
+void XM_CALLCONV Camera::LookAt( const XMFLOAT3& iPos, const XMFLOAT3& iTarget, const XMFLOAT3& iUp ) {
+	XMVECTOR P = XMLoadFloat3( &iPos );
+	XMVECTOR T = XMLoadFloat3( &iTarget );
+	XMVECTOR U = XMLoadFloat3( &iUp );
+	LookAt( P, T, U );
+}
+XMMATRIX XM_CALLCONV Camera::View() const {
+	return XMLoadFloat4x4( &view );
+}
+XMMATRIX XM_CALLCONV Camera::Proj() const {
+	return XMLoadFloat4x4( &proj );
+}
+XMMATRIX XM_CALLCONV Camera::ViewProj() const {
+	return XMMatrixMultiply( View(), Proj() );
+}
+
+void XM_CALLCONV Camera::Strafe( float distance ) {
+	XMVECTOR s = XMVectorReplicate( distance );
+	XMVECTOR r = XMLoadFloat3( &right );
+	XMVECTOR p = XMLoadFloat3( &pos );
+	XMStoreFloat3( &pos, XMVectorMultiplyAdd( s, r, p ) );
+}
+
+void XM_CALLCONV Camera::Walk( float distance ) {
+	XMVECTOR s = XMVectorReplicate( distance );
+	XMVECTOR l = XMLoadFloat3( &look );
+	XMVECTOR p = XMLoadFloat3( &pos );
+	XMStoreFloat3( &pos, XMVectorMultiplyAdd( s, l, p ));
+}
+
+void XM_CALLCONV Camera::Pitch( float angle ) {
+	XMMATRIX R = XMMatrixRotationAxis( XMLoadFloat3( &right ), angle );
+	XMStoreFloat3( &up, XMVector3TransformNormal( XMLoadFloat3( &up ), R ) );
+	XMStoreFloat3( &look, XMVector3TransformNormal( XMLoadFloat3( &look ), R ) );
+}
+
+void XM_CALLCONV Camera::RotateY( float angle ) {
+	XMMATRIX R = XMMatrixRotationY( angle );
+	XMStoreFloat3( &right, XMVector3TransformNormal( XMLoadFloat3( &right ), R ) );
+	XMStoreFloat3( &up, XMVector3TransformNormal( XMLoadFloat3( &up ), R ) );
+	XMStoreFloat3( &look, XMVector3TransformNormal( XMLoadFloat3( &look ), R ) );
+}
+
+void XM_CALLCONV Camera::UpdateViewMatrix() {
+	XMVECTOR R = XMLoadFloat3( &right );
+	XMVECTOR U = XMLoadFloat3( &up );
+	XMVECTOR L = XMLoadFloat3( &look );
+	XMVECTOR P = XMLoadFloat3( &pos );
+	L = XMVector3Normalize( L );
+	U = XMVector3Normalize( XMVector3Cross( L, R ) );
+	R = XMVector3Cross( U, L );
+	float x = -XMVectorGetX( XMVector3Dot( P, R ) );
+	float y = -XMVectorGetX( XMVector3Dot( P, U ) );
+	float z = -XMVectorGetX( XMVector3Dot( P, L ) );
+	XMStoreFloat3( &right, R );
+	XMStoreFloat3( &up, U );
+	XMStoreFloat3( &look, L );
+
+	view( 0, 0 ) = right.x;
+	view( 1, 0 ) = right.y;
+	view( 2, 0 ) = right.z;
+	view( 3, 0 ) = x;
+	
+	view( 0, 1 ) = up.x;
+	view( 1, 1 ) = up.y;
+	view( 2, 1 ) = up.z;
+	view( 3, 1 ) = y;
+
+	view( 0, 2 ) = look.x;
+	view( 1, 2 ) = look.y;
+	view( 2, 2 ) = look.z;
+	view( 3, 2 ) = z;
+
+	view( 0, 3 ) = 0.0f;
+	view( 1, 3 ) = 0.0f;
+	view( 2, 3 ) = 0.0f;
+	view( 3, 3 ) = 1.0f;
+
+}
+
+UINT XM_CALLCONV Camera::GetCamType() const {
 	return camType;
 }
 
@@ -70,16 +226,6 @@ void XM_CALLCONV Camera::SetCamType( UINT incTypeNum ) {
 	}
 }
 
-void XM_CALLCONV Camera::Strafe( float distance ) {
-	XMVECTOR s = XMVectorReplicate( distance );
-	XMVECTOR r = right;
-	XMVECTOR p = pos;
-	pos = XMVectorMultiplyAdd( s, r, p );
-}
-
-void XM_CALLCONV Camera::Walk( float distance ) {
-	XMVECTOR s = XMVectorReplicate( distance );
-	XMVECTOR l = look;
-	XMVECTOR p = pos;
-	pos = XMVectorMultiplyAdd( s, l, p );
+void Camera::SetAspect( float iAspect ) {
+	aspect = iAspect;
 }

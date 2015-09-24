@@ -41,6 +41,9 @@ depthStencilView( nullptr ),
 paused( false ) {
 	ZeroMemory( &screenViewport, sizeof( D3D11_VIEWPORT ) );
 	game = this;
+	lastMousePos.x = 0;
+	lastMousePos.y = 0;
+	camera.SetPos( 0.0f, 30.0f, 0.0f );
 }
 
 Game::~Game() {
@@ -60,6 +63,8 @@ Game::~Game() {
 
 bool Game::Init() {
 	camera = Camera();
+	camera.SetAspect( AspectRatio() );
+
 	if( !InitMainWindow() ) {
 		return false;
 	}
@@ -257,7 +262,7 @@ void Game::OnResize() {
 	vp.MaxDepth = 1.f;
 	d3DImmediateContext->RSSetViewports( 1, &vp );
 
-	camera.Init( AspectRatio() );
+	camera.SetLens( 0.25f * 3.14, AspectRatio(), 1.0f, 1000.0f );
 }
 
 LRESULT Game::MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
@@ -328,35 +333,7 @@ LRESULT Game::MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
 			DestroyWindow( hwnd );
 			return 0;
 		}
-		if( GetAsyncKeyState( VK_HOME ) ) {
-			UINT incCamType = camera.GetCamType();
-			UINT newCamType = incCamType++;
-			camera.SetCamType(newCamType);
-		}
-		if( GetAsyncKeyState( VK_LEFT ) ) {
-			// camera strafe left
-			if( camera.GetCamType()==1 ) {
-				camera.Strafe( -0.3f );
-			}
-		}
-		if( GetAsyncKeyState( VK_RIGHT ) ) {
-			// camera strafe right
-			if( camera.GetCamType()==1 ) {
-				camera.Strafe( 0.3f );
-			}
-		}
-		if( GetAsyncKeyState( VK_UP ) ) {
-			// camera move forward
-			if( camera.GetCamType()==1 ) {
-				camera.Walk( -0.3f );
-			}
-		}
-		if( GetAsyncKeyState( VK_DOWN ) ) {
-			// camera move back
-			if( camera.GetCamType()==1 ) {
-				camera.Walk( 0.3f );
-			}
-		}
+		
 	case WM_SYSKEYDOWN: // no break
 	case WM_KEYUP:		// no break
 	case WM_SYSKEYUP:
@@ -488,24 +465,47 @@ void Game::Update( float dt ) {
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
 	
-	camera.Update();
 	
-	//camera.UpdateFollow(  goblin.GetWorld() );
+	//camera.LookAt( camera.GetPosXM(), goblin.getPos(), camera.GetUpXM() );
+	camera.Update( dt );
 }
 
 void Game::Draw() {
-	XMMATRIX viewProj = camera.GetViewProj();
+	XMMATRIX viewProj = camera.ViewProj();
 	float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 	d3DImmediateContext->ClearRenderTargetView( renderTargetView, clearColor );
 	d3DImmediateContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0 );
 
 	//floor.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
-	walls.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
+	walls.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 	lava.Draw( viewProj, d3DImmediateContext );
-	firePlinth.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
-	goblin.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
+	firePlinth.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
+	goblin.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 #ifdef PHYSICS_DEBUG_MODE
 	physicsWorld->DrawDebug(viewProj);
 #endif
 	swapChain->Present( 0, 0 );
+}
+
+void Game::OnMouseDown( WPARAM btnState, int x, int y ) {
+	lastMousePos.x = x;
+	lastMousePos.y = y;
+	SetCapture( hMainWnd );
+}
+
+void Game::OnMouseUp( WPARAM btnState, int x, int y ) {
+	ReleaseCapture();
+}
+
+void Game::OnMouseMove( WPARAM btnState, int x, int y ) {
+	if( (btnState & MK_LBUTTON)!=0 ) {
+		// make each pixel correspond to a quarter of a degree
+		float dx = XMConvertToRadians( 0.25f * static_cast<float>(x-lastMousePos.x) );
+		float dy = XMConvertToRadians( 0.25f * static_cast<float>(x-lastMousePos.y) );
+		camera.Pitch( dy );
+		camera.RotateY( dx );
+	}
+	lastMousePos.x = x;
+	lastMousePos.y = y;
+	camera.Update( timer.DT() );
 }
