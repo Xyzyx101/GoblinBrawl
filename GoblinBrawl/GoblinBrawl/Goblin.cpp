@@ -50,7 +50,7 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	//Texture
 	HR( CreateWICTextureFromFile( device, L"./art/textures/goblin_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
-	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
+	mat.Diffuse = XMFLOAT4( 0.8f, 0.7f, 0.8f, 1.0f );
 	mat.Specular = XMFLOAT4( 0.02f, 0.02f, 0.02f, 32.0f );
 
 	// Start Position
