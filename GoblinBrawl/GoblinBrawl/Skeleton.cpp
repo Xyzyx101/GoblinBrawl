@@ -151,20 +151,8 @@ void Skeleton::UpdateLocalTransformsFromRagdoll() {
 
 		XMVECTOR quat = XMVectorSet( jointRot.x(), jointRot.y(), jointRot.z(), jointRot.w() );
 		XMMATRIX rot = XMMatrixRotationQuaternion( quat );
-		//XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
-		//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-		//rot = rot*rotX*rotZ;
-
 		XMMATRIX scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f );
-
 		XMMATRIX boneWorld = scale*rot*translate;
-
-		//XMMATRIX offset = bone->offset;
-
-		//XMMATRIX x = offset*boneWorld;
-		//XMMATRIX rotY = XMMatrixRotationY( XM_PIDIV2 );
-		//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-		//XMMATRIX fixedBoneWorld = x*rotZ*rotY;
 
 		XMMATRIX modelXform = XMLoadFloat4x4( &rootTransform );
 		Bone* rootBone = GetBoneByIndex( 0 );
@@ -176,7 +164,6 @@ void Skeleton::UpdateLocalTransformsFromRagdoll() {
 		XMMATRIX boneToRoot = boneModelSpace*rootBoneXform;
 		toRoot[bone->idx] = boneModelSpace;
 		XMMATRIX offset = bone->offset;
-		//XMMATRIX finalTransform = offset*boneToRoot;
 		XMMATRIX finalTransform = offset*boneModelSpace;
 		DirectX::XMStoreFloat4x4( &finalTransformData[bone->idx], finalTransform );
 		bone->dirty = false;
@@ -411,6 +398,7 @@ btRigidBody* Skeleton::CreateBoneBody( Bone* bone, Bone* target, btConvexShape* 
 	center.y = (head.y+tail.y)/2;
 	center.z = (head.z+tail.z)/2;
 	
+
 	XMMATRIX translate = XMMatrixTranslation( center.x, center.y, center.z );
 	XMMATRIX rot = XMMatrixRotationQuaternion( boneRotQuat );
 	XMMATRIX scale = XMMatrixScaling( 1.f, 1.f, 1.f );
