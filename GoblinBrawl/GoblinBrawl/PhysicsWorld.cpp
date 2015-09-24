@@ -1,11 +1,15 @@
 #include "stdafx.h"
 #include "PhysicsWorld.h"
 #include "PhysicsDebugDrawer.h"
+#include "BulletDynamics\MLCPSolvers\btDantzigSolver.h"
+#include "BulletDynamics\MLCPSolvers\btSolveProjectedGaussSeidel.h"
+#include "BulletDynamics\MLCPSolvers\btMLCPSolver.h"
 
 using namespace DirectX;
 
 PhysicsWorld::PhysicsWorld() :
-debugDrawer( nullptr ) {}
+debugDrawer( nullptr ),
+useMCLPSolver( false ) {}
 
 PhysicsWorld::~PhysicsWorld() {
 	CleanUpDemo();
@@ -32,10 +36,27 @@ bool PhysicsWorld::Init() {
 	btVector3 worldMax( 100, 100, 100 );
 	overlappingPairCache = new btAxisSweep3( worldMin, worldMax );
 
+	if( useMCLPSolver ) {
+		btDantzigSolver* mlcp = new btDantzigSolver();
+		//btSolveProjectedGaussSeidel* mlcp = new btSolveProjectedGaussSeidel;
+		btMLCPSolver* sol = new btMLCPSolver( mlcp );
+		solver = sol;
+	} else {
+		solver = new btSequentialImpulseConstraintSolver();
+	}
+
+	//m_dynamicsWorld->setConstraintSolver( m_solver );
+
 	///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
 	solver = new btSequentialImpulseConstraintSolver;
 
 	dynamicsWorld = new btDiscreteDynamicsWorld( dispatcher, overlappingPairCache, solver, collisionConfiguration );
+	if( useMCLPSolver ) {
+		dynamicsWorld->getSolverInfo().m_minimumSolverBatchSize = 1;//for direct solver it is better to have a small A matrix
+	} else {
+		dynamicsWorld->getSolverInfo().m_minimumSolverBatchSize = 128;//for direct solver, it is better to solve multiple objects together, small batches have high overhead
+	}
+
 	dynamicsWorld->setGravity( btVector3( btScalar( 0 ), btScalar( -9.8 ), btScalar( 0 ) ) );
 	dynamicsWorld->getDispatchInfo().m_allowedCcdPenetration = 0.0001f;
 

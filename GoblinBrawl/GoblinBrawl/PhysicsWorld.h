@@ -3,7 +3,7 @@
 #include "btBulletDynamicsCommon.h"
 #include "BulletDynamics\MLCPSolvers\btDantzigSolver.h"
 
-#define PHYSICS_DEBUG_MODE
+//#define PHYSICS_DEBUG_MODE
 
 class PhysicsDebugDrawer;
 
@@ -42,5 +42,6 @@ private:
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	PhysicsDebugDrawer*						debugDrawer;
+	bool									useMCLPSolver;
 };
 

@@ -6,6 +6,7 @@
 #include "MyEffects.h"
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
+#include "SharedResources.h"
 
 using namespace DirectX;
 
@@ -24,8 +25,8 @@ bool FirePlinth::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
 	}
 	HR( CreateWICTextureFromFile( device, L"./art/textures/fire_plinth_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
-	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Diffuse = XMFLOAT4( 0.6f, 0.4f, 0.4f, 1.0f );
+	mat.Specular = XMFLOAT4( 0.4f, 0.2f, 0.2f, 32.0f );
 	return true;
 }
 
@@ -46,6 +47,7 @@ void XM_CALLCONV FirePlinth::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std:
 	MyEffects::StaticGeomFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::StaticGeomFX->SetWorldViewProj( worldViewProj );
 	MyEffects::StaticGeomFX->SetDiffuseMap( diffuseView );
+	MyEffects::StaticGeomFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::StaticGeomFX->SetEyePosW( cameraPos );
 	MyEffects::StaticGeomFX->SetPointLights( pointLights.data() );
 	MyEffects::StaticGeomFX->SetMaterial( mat );

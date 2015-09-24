@@ -6,6 +6,7 @@
 #include "MyEffects.h"
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
+#include "SharedResources.h"
 
 using namespace DirectX;
 
@@ -23,8 +24,8 @@ bool Walls::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
 	}
 	HR( CreateWICTextureFromFile( device, L"./art/textures/wall_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
-	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Diffuse = XMFLOAT4( 0.9f, 0.9f, 0.9f, 1.0f );
+	mat.Specular = XMFLOAT4( 0.5f, 0.5f, 0.5f, 64.0f );
 	return true;
 }
 
@@ -45,6 +46,7 @@ void XM_CALLCONV Walls::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vect
 	MyEffects::StaticGeomFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::StaticGeomFX->SetWorldViewProj( worldViewProj );
 	MyEffects::StaticGeomFX->SetDiffuseMap( diffuseView );
+	MyEffects::StaticGeomFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::StaticGeomFX->SetEyePosW( cameraPos );
 	MyEffects::StaticGeomFX->SetPointLights( pointLights.data() );
 	MyEffects::StaticGeomFX->SetMaterial( mat );

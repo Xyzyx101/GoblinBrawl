@@ -22,23 +22,29 @@ void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, f
 	spec = float4 (0.f, 0.f, 0.f, 0.f);
 
 	float3 lightVec = L.Position-pos;
-	float d = length( lightVec );
-	
+		float d = length( lightVec );
+
 	if( d>L.Range ) {
 		return;
 	}
 
 	lightVec /= d; //normalize
 
-	ambient = mat.Ambient * L.Ambient;
+	//ambient = mat.Ambient * L.Ambient;
+
+	ambient = dot( lightVec, normal );
+	ambient = ambient*0.5f+0.5f;
+	ambient = ambient*ambient;
 
 	float diffuseFactor = dot( lightVec, normal );
+	diffuseFactor = diffuseFactor*0.5f+0.5f;
+	diffuseFactor = diffuseFactor*diffuseFactor;
 
 	[flatten]
 	if( diffuseFactor>0.0f ) {
 		float3 v = reflect( -lightVec, normal );
 		float specFactor = pow( max( dot( v, toEye ), 0.0f ), mat.Specular.w );
-		diffuse = diffuseFactor * mat.Diffuse * L.Diffuse;
+		diffuse = clamp(diffuseFactor * mat.Diffuse * L.Diffuse, 0.f, 0.2f);
 		spec = specFactor * mat.Specular * L.Specular;
 	}
 
@@ -46,4 +52,8 @@ void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, f
 	float att = 1.0f/dot( L.Att, float3(1.0f, d, d * d) );
 	diffuse *= att;
 	spec *= att;
+
+	//d *= 3.f;
+	float ambientAtt = att *att;// /2.f;// 1.0f/dot( L.Att, float3(d, d*d, d*d*d) );
+	ambient *= ambientAtt;
 }

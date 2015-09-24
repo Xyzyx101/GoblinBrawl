@@ -23,8 +23,8 @@ void XM_CALLCONV Camera::Update( FXMVECTOR _pos, FXMVECTOR target ) {
 }
 
 void XM_CALLCONV Camera::UpdateFollow( FXMMATRIX world ) {
-	XMVECTOR target = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, -800.f, 1.f )), world);
-	XMVECTOR pos = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 200.f, 500.f, 1.f ) ), world );
+	XMVECTOR target = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 0.f, 800.f, 1.f )), world);
+	XMVECTOR pos = XMVector3Transform( XMLoadFloat4( &XMFLOAT4( 0.f, 200.f, -500.f, 1.f ) ), world );
 	Update( pos, target );
 }
 

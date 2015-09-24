@@ -27,6 +27,7 @@ __declspec(align(16)) struct Bone {
 	btRigidBody*						body;
 	std::vector<btTypedConstraint*>		joints;
 	std::string							name;
+	bool								dirty;
 };
 
 
@@ -145,14 +146,14 @@ private:
 	void CreateAllBodies();
 	VOID CreateAllJoints();
 	void CreateBoneShape( SHAPE shape, Bone* target, float radius );
-	btRigidBody* CreateBoneBody( Bone* bone, btConvexShape* shape, float mass, btScalar xRot, btScalar yRot, btScalar zRot );
-	//void CreateConstraint( JOINT joint, Bone* from, Bone* to, btVector3 fromOffset, btVector3 toOffset, btScalar aRotX, btScalar aRotY, btScalar aRotZ, btScalar bRotX, btScalar bRotY, btScalar bRotZ, btScalar swingLimit1, btScalar swingLimit2, btScalar twistLimit );
+	btRigidBody* CreateBoneBody( Bone* fromBone, Bone* toBone, btConvexShape* shape, float mass );
 	void CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &jointInfo );
 	float GetBoneLength( Bone* bone );
 	void InitMotorData();
 	void UpdateMotorData();
 	void SetAllMotors(float dt);
 	btTransform XM_CALLCONV XMMatrixToBTTransform( DirectX::FXMMATRIX m, bool fbxCorrection );
+	void DirtyBones();
 	int									numBones;
 	std::map<int, Bone*>				idxBones;
 	std::map<std::string, Bone*>		nameBones;

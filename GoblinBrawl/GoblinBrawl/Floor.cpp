@@ -8,6 +8,7 @@
 #include "WICTextureLoader.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "PhysicsWorld.h"
+#include "SharedResources.h"
 
 using namespace DirectX;
 
@@ -32,7 +33,7 @@ bool Floor::Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* 
 	HR( CreateWICTextureFromFile( device, L"./art/textures/floor_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
 	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Specular = XMFLOAT4( 0.08f, 0.05f, 0.05f, 4.0f );
 	return true;
 }
 
@@ -53,6 +54,7 @@ void XM_CALLCONV Floor::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vect
 	MyEffects::StaticGeomFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::StaticGeomFX->SetWorldViewProj( worldViewProj );
 	MyEffects::StaticGeomFX->SetDiffuseMap( diffuseView );
+	MyEffects::StaticGeomFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::StaticGeomFX->SetEyePosW( cameraPos );
 	MyEffects::StaticGeomFX->SetPointLights( pointLights.data() );
 	MyEffects::StaticGeomFX->SetMaterial( mat );

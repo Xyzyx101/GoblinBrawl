@@ -10,6 +10,7 @@
 #include "PhysicsWorld.h"
 #include "Bullet/BulletDynamics/Character/btKinematicCharacterController.h"
 #include "Bullet/BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "SharedResources.h"
 
 using namespace DirectX;
 
@@ -50,12 +51,13 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	HR( CreateWICTextureFromFile( device, L"./art/textures/goblin_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
 	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Specular = XMFLOAT4( 0.02f, 0.02f, 0.02f, 32.0f );
 
 	// Start Position
 	XMFLOAT4 goblinPos;
 	if( player==PLAYER_1 ) {
-		goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
+		//goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
+		goblinPos = XMFLOAT4( 16.4867f, 5.9049f, -10.8f, 1.0f );
 	} else {
 		goblinPos = XMFLOAT4( 20.f, 5.f, 10.f, 1.0f );
 	}
@@ -136,6 +138,7 @@ void XM_CALLCONV Goblin::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vec
 	MyEffects::CharacterSkinnedFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::CharacterSkinnedFX->SetWorldViewProj( worldViewProj );
 	MyEffects::CharacterSkinnedFX->SetDiffuseMap( diffuseView );
+	MyEffects::CharacterSkinnedFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::CharacterSkinnedFX->SetEyePosW( cameraPos );
 	MyEffects::CharacterSkinnedFX->SetPointLights( pointLights.data() );
 	MyEffects::CharacterSkinnedFX->SetMaterial( mat );

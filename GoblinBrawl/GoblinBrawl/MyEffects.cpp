@@ -44,6 +44,7 @@ MyEffect( device, filename ) {
 	worldInvTranspose = fx->GetVariableByName( "gWorldInvTranspose" )->AsMatrix();
 	worldViewProj = fx->GetVariableByName( "gWorldViewProj" )->AsMatrix();
 	diffuseMap = fx->GetVariableByName( "gDiffuseMap" )->AsShaderResource();
+	ambientMap = fx->GetVariableByName( "gAmbientMap" )->AsShaderResource();
 	eyePosW = fx->GetVariableByName( "gEyePosW" )->AsVector();
 	pointLights = fx->GetVariableByName( "gPointLights" );
 	mat = fx->GetVariableByName( "gMaterial" );
@@ -70,6 +71,7 @@ MyEffect( device, filename ) {
 	worldInvTranspose = fx->GetVariableByName( "gWorldInvTranspose" )->AsMatrix();
 	worldViewProj = fx->GetVariableByName( "gWorldViewProj" )->AsMatrix();
 	diffuseMap = fx->GetVariableByName( "gDiffuseMap" )->AsShaderResource();
+	ambientMap = fx->GetVariableByName( "gAmbientMap" )->AsShaderResource();
 	eyePosW = fx->GetVariableByName( "gEyePosW" )->AsVector();
 	pointLights = fx->GetVariableByName( "gPointLights" );
 	mat = fx->GetVariableByName( "gMaterial" );

@@ -42,7 +42,7 @@ public:
 		DirectX::XMVECTOR outTrans;
 		XMMatrixDecompose( &outScale, &outRotQuat, &outTrans, xm );
 		btVector3 trans( outTrans.m128_f32[0], outTrans.m128_f32[1], outTrans.m128_f32[2] );
-		btQuaternion rotQuat( outRotQuat.m128_f32[0], outRotQuat.m128_f32[1], -outRotQuat.m128_f32[2], outRotQuat.m128_f32[3] );
+		btQuaternion rotQuat( outRotQuat.m128_f32[0], outRotQuat.m128_f32[1], outRotQuat.m128_f32[2], outRotQuat.m128_f32[3] );
 		btQuaternion myTestQuat = btQuaternion::getIdentity();
 		myTestQuat.setEulerZYX(0.,0.,0.);
 		return btTransform( rotQuat, trans );
