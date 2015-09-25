@@ -31,6 +31,7 @@ __declspec(align(16)) struct Bone {
 	DirectX::XMFLOAT3					headW;
 	DirectX::XMFLOAT3					tailW;
 	DirectX::XMFLOAT4					initialRotQuat;
+	DirectX::XMFLOAT4X4					initialRot;
 	DirectX::XMFLOAT3					boneToBodyOffset;
 	btTransform							btWorld;
 };
@@ -105,7 +106,6 @@ public:
 	enum JOINT {
 		J_ROOT_HIP,
 		J_HIP_LOWER_SPINE,
-		J_HIP_R,
 		J_LOWER_UPPER_SPINE,
 		J_SPINE_NECK,
 		J_NECK_HEAD,
@@ -118,12 +118,12 @@ public:
 		J_WRIST_R,
 		J_WRIST_L,
 		J_HAND_CLUB,
+		J_HIP_R,
 		J_HIP_L,
 		J_KNEE_L,
 		J_KNEE_R,
 		J_ANKLE_L,
 		J_ANKLE_R,
-		J_CLUB,
 		JOINT_COUNT
 	};
 
