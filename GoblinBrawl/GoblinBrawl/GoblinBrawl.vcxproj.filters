@@ -858,6 +858,9 @@
     <ClInclude Include="AnimationController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SharedResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1337,6 +1340,9 @@
     <ClCompile Include="AnimationController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SharedResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GoblinBrawl.rc">
@@ -1355,9 +1361,6 @@
     <FxCompile Include="fx\simple.fx">
       <Filter>fx</Filter>
     </FxCompile>
-    <FxCompile Include="fx\terrain.fx">
-      <Filter>fx</Filter>
-    </FxCompile>
     <FxCompile Include="fx\lightHelper.fx">
       <Filter>fx</Filter>
     </FxCompile>
@@ -1368,6 +1371,9 @@
       <Filter>fx</Filter>
     </FxCompile>
     <FxCompile Include="fx\characterSkinned.fx">
+      <Filter>fx</Filter>
+    </FxCompile>
+    <FxCompile Include="fx\lava.fx">
       <Filter>fx</Filter>
     </FxCompile>
   </ItemGroup>

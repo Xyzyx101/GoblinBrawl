@@ -13,12 +13,19 @@ cbuffer cbPerObject {
 };
 
 Texture2D	gDiffuseMap;
+Texture2D	gAmbientMap;
 
 SamplerState samAnisotropic {
 	Filter = ANISOTROPIC;
 	MaxAnisotropy = 4;
 	AddressU = WRAP;
 	AddressV = WRAP;
+};
+
+SamplerState samAmbient {
+	Filter = MIN_MAG_MIP_LINEAR;
+	AddressU = CLAMP;
+	AddressV = CLAMP;
 };
 
 struct VertexIn {
@@ -78,10 +85,10 @@ float4 PS( VertexOut pin, uniform int gLightCount ) : SV_Target{
 		spec += S;
 	}
 	
-	float4 litColor = texColor * (ambient + diffuse) + spec;
+	float4 ambientColor = gAmbientMap.Sample( samAmbient, float2(ambient.r, 0.f) );
+	float4 litColor = (texColor*diffuse*ambientColor)+spec;
 	litColor.a = gMaterial.Diffuse.a;
 
-	//return float4(pin.NormalW, 1.0f);
 	return litColor;
 }
 

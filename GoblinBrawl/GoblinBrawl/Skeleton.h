@@ -15,24 +15,23 @@ class btCollisionShape;
 class btTransform;
 class AnimationController;
 
-using namespace DirectX;
-
-struct Bone {
+__declspec(align(16)) struct Bone {
 	Bone::Bone() {
-		localTransform = XMMatrixIdentity();
-		finalTransform = XMMatrixIdentity();
+		localTransform = DirectX::XMMatrixIdentity();
 	}
 	int									idx;
 	int									parentIdx;
-	XMMATRIX							offset;
-	XMMATRIX							localTransform;
-	XMMATRIX							finalTransform;
+	DirectX::XMMATRIX					offset;
+	DirectX::XMMATRIX					localTransform;
 	std::vector<Bone*>					children;
 	btRigidBody*						body;
 	std::vector<btTypedConstraint*>		joints;
 	std::string							name;
+	bool								dirty;
 };
 
+
+// TODO I think I can scrap this struct
 __declspec(align(16)) struct JointInfo {
 	btVector3	fromOffset;
 	btVector3	toOffset;
@@ -45,6 +44,16 @@ __declspec(align(16)) struct JointInfo {
 	btScalar	swingLimit1;
 	btScalar	swingLimit2;
 	btScalar	twistLimit;
+};
+
+__declspec(align(16)) struct MotorData {
+	int				boneIdx;
+	bool			motorEnabled;
+	btScalar		maxMotorImpulse;
+	btScalar		currentMotorImpulse;
+	btQuaternion	rotTarget;
+	float			rotFactor;
+	float			velocityFactor;
 };
 
 class Skeleton {
@@ -116,38 +125,47 @@ public:
 	Skeleton();
 	~Skeleton();
 	void AddBone( Bone* newBone );
-	void XM_CALLCONV UpdateTransformByName( FXMVECTOR translate, FXMVECTOR rotQuat, FXMVECTOR scale, std::string name );
-	void XM_CALLCONV UpdateTransformByIndex( FXMVECTOR translate, FXMVECTOR rotQuat, FXMVECTOR scale, int index );
+	void XM_CALLCONV UpdateTransformByName( DirectX::FXMVECTOR translate, DirectX::FXMVECTOR rotQuat, DirectX::FXMVECTOR scale, std::string name );
+	void XM_CALLCONV UpdateTransformByIndex( DirectX::FXMVECTOR translate, DirectX::FXMVECTOR rotQuat, DirectX::FXMVECTOR scale, int index );
 	DirectX::XMFLOAT4X4* XM_CALLCONV GetFinalTransforms();
 	Bone* GetBoneByName( std::string name );
 	Bone* GetBoneByIndex( int index );
 	int BoneCount() { return numBones; };
 	void XM_CALLCONV InitPhysics( PhysicsWorld* physicsWorld );
-	void XM_CALLCONV SetRootTransform( FXMMATRIX transform );
+	void XM_CALLCONV SetRootTransform( DirectX::FXMMATRIX transform );
 	void CreateDemoRagDoll();
 	btRigidBody* localCreateRigidBody( float mass, const btTransform& startTransform, btCollisionShape* shape );
 	void SetAnimationController( AnimationController* animationController );
+	void Update( float dt );
 private:
-	void UpdateLocalTransforms();
+	void UpdateLocalTransformsFromAnimation();
+	void UpdateLocalTransformsFromRagdoll();
 	void UpdateTransforms( Bone* bone );
+	void UpdateTransformsFromRagdoll( Bone* bone );
 	void CreateAllShapes();
 	void CreateAllBodies();
 	VOID CreateAllJoints();
-	void CreateBoneShape(SHAPE shape, Bone* target, float radius);
-	btRigidBody* CreateBoneBody( Bone* bone, btConvexShape* shape, float mass, btScalar xRot, btScalar yRot, btScalar zRot );
-	//void CreateConstraint( JOINT joint, Bone* from, Bone* to, btVector3 fromOffset, btVector3 toOffset, btScalar aRotX, btScalar aRotY, btScalar aRotZ, btScalar bRotX, btScalar bRotY, btScalar bRotZ, btScalar swingLimit1, btScalar swingLimit2, btScalar twistLimit );
+	void CreateBoneShape( SHAPE shape, Bone* target, float radius );
+	btRigidBody* CreateBoneBody( Bone* fromBone, Bone* toBone, btConvexShape* shape, float mass );
 	void CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &jointInfo );
 	float GetBoneLength( Bone* bone );
+	void InitMotorData();
+	void UpdateMotorData();
+	void SetAllMotors(float dt);
+	btTransform XM_CALLCONV XMMatrixToBTTransform( DirectX::FXMMATRIX m, bool fbxCorrection );
+	void DirtyBones();
 	int									numBones;
 	std::map<int, Bone*>				idxBones;
 	std::map<std::string, Bone*>		nameBones;
 	DirectX::XMFLOAT4X4					finalTransformData[96];
-	std::vector<XMMATRIX>				toRoot;
+	std::vector<DirectX::XMMATRIX>		toRoot;
 	PhysicsWorld*						physicsWorld;
-	XMFLOAT4X4							rootTransform;
+	DirectX::XMFLOAT4X4					rootTransform;
 	btConvexShape*						shapes[SHAPE_COUNT];
 	btScalar							shapeLengths[SHAPE_COUNT];
 	btRigidBody*						bodies[BODY_COUNT];
 	btTypedConstraint*					joints[JOINT_COUNT];
+	MotorData*							motors[JOINT_COUNT];
 	AnimationController*				animationController;
+	bool								useRagdoll;
 };

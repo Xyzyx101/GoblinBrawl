@@ -2,12 +2,13 @@
 #include "DirectX_11_1_Includes.h"
 
 const UINT MAXCAMTYPES = 1;
-
 using namespace DirectX;
+
 class Camera {
 public:
 	Camera();
 	~Camera();
+
 	void XM_CALLCONV Update( float deltaTime );
 	void Init( float aspectRatio );
 	// Get/Set world camera position
@@ -68,4 +69,5 @@ private:
 	float fovY;
 	float nearWindowHeight;
 	float farWindowHeight;
+
 };

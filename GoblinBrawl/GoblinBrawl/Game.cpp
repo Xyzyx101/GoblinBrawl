@@ -9,8 +9,11 @@
 #include "MyEffects.h"
 #include "Vertex.h"
 #include "PhysicsWorld.h"
+#include "SharedResources.h"
 
 #define DISPLAY_FPS
+
+using namespace DirectX;
 
 namespace {
 	// This is just used to forward Windows messages from a global window
@@ -355,7 +358,7 @@ int Game::Run() {
 		}
 		// Otherwise, do animation/game stuff.
 		else {
-			//Sleep( 10 ); //FIXME - this is a terrible hack because the framerate is so high it breaks physics remove it
+			Sleep( 10 ); //FIXME - this is a terrible hack because the framerate is so high it breaks physics remove it
 			timer.Tick();
 			if( !paused ) {
 #ifdef DISPLAY_FPS
@@ -423,6 +426,7 @@ float Game::AspectRatio() {
 }
 
 bool Game::LoadGameObjects() {
+	SharedResources::Init( d3DDevice );
 	physicsWorld->SetupDemo();
 	ModelLoader loader( d3DDevice, "./art/models/", "/art/textures/" );
 	lighting = Lighting();
@@ -461,8 +465,7 @@ void Game::Update( float dt ) {
 
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
-	
-	//camera.SetGoblin1Pos( goblin.getPos() );
+
 	camera.Update( dt );
 }
 
@@ -471,8 +474,7 @@ void Game::Draw() {
 	float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 	d3DImmediateContext->ClearRenderTargetView( renderTargetView, clearColor );
 	d3DImmediateContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0 );
-
-	//floor.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
+	floor.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 	walls.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 	lava.Draw( viewProj, d3DImmediateContext );
 	firePlinth.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );

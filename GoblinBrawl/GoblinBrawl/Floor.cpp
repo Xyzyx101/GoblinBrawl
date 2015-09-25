@@ -8,6 +8,9 @@
 #include "WICTextureLoader.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "PhysicsWorld.h"
+#include "SharedResources.h"
+
+using namespace DirectX;
 
 Floor::Floor() :
 mesh( nullptr ),
@@ -18,7 +21,7 @@ Floor::~Floor() {}
 
 bool Floor::Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* physicsWorld ) {
 	this->device = device;
-	modelLoader->Load( "floor.lxo", Vertex::TERRAIN );
+	modelLoader->Load( "floor.lxo", Vertex::STATIC_GEOMETRY );
 	mesh = modelLoader->GetMesh();
 	if( !mesh ) {
 		return false;
@@ -30,14 +33,14 @@ bool Floor::Init( ModelLoader* modelLoader, ID3D11Device* device, PhysicsWorld* 
 	HR( CreateWICTextureFromFile( device, L"./art/textures/floor_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
 	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Specular = XMFLOAT4( 0.08f, 0.05f, 0.05f, 4.0f );
 	return true;
 }
 
 void XM_CALLCONV Floor::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context ) {
-	context->IASetInputLayout( InputLayouts::Terrain );
+	context->IASetInputLayout( InputLayouts::StaticGeom );
 	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	UINT stride = sizeof( Vertex::TerrainVertex );
+	UINT stride = sizeof( Vertex::StaticGeomVertex );
 	UINT offset = 0;
 	ID3D11Buffer* buffers[1] = { mesh->VB() };
 	context->IASetVertexBuffers( 0, 1, &buffers[0], &stride, &offset );
@@ -51,6 +54,7 @@ void XM_CALLCONV Floor::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vect
 	MyEffects::StaticGeomFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::StaticGeomFX->SetWorldViewProj( worldViewProj );
 	MyEffects::StaticGeomFX->SetDiffuseMap( diffuseView );
+	MyEffects::StaticGeomFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::StaticGeomFX->SetEyePosW( cameraPos );
 	MyEffects::StaticGeomFX->SetPointLights( pointLights.data() );
 	MyEffects::StaticGeomFX->SetMaterial( mat );
@@ -153,8 +157,8 @@ BYTE* Floor::GetRawHeightData( int gridSize, float heightScale, btScalar gridSpa
 	Pixel test0 = pixelData[0];
 	Pixel test1 = pixelData[1];
 	Pixel test2 = pixelData[2];
-	float texWidth = heightfieldMap.RowPitch/8; // 8 bytes per pixel
-	float gridToTexScale = texWidth/gridSize;
+	int texWidth = heightfieldMap.RowPitch/8; // 8 bytes per pixel
+	int gridToTexScale = texWidth/gridSize;
 	long nBytes = nElements * bytesPerElement;
 	BYTE * raw = new BYTE[nBytes];
 	btAssert( raw && "out of memory" );
@@ -162,9 +166,9 @@ BYTE* Floor::GetRawHeightData( int gridSize, float heightScale, btScalar gridSpa
 	for( int i = 0; i<gridSize; ++i ) {
 		for( int j = 0; j<gridSize; ++j ) {
 			//float value = 4.75;
-			int xTexCoord = j * gridToTexScale;
-			int yTexCoord = i * gridToTexScale;
-			int pixel = (yTexCoord*texWidth+xTexCoord);
+			int xTexCoord = (int)(j * gridToTexScale);
+			int yTexCoord = (int)(i * gridToTexScale);
+			int pixel = (int)(yTexCoord*texWidth+xTexCoord);
 			float value = (float)(pixelData[pixel].r/65536.f)*heightScale;
 			switch( type ) {
 			case PHY_FLOAT:

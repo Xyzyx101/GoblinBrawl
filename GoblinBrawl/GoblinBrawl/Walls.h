@@ -17,7 +17,7 @@ public:
 	Walls();
 	~Walls();
 	bool Init( ModelLoader* modelLoader, ID3D11Device* device );
-	void XM_CALLCONV Draw( DirectX::FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
+	void XM_CALLCONV Draw( DirectX::FXMMATRIX viewProj, DirectX::FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context );
 private:
 	Mesh*							mesh;
 	ID3D11ShaderResourceView*		diffuseView;

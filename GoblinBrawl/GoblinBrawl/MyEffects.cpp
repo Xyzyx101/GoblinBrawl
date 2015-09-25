@@ -27,15 +27,15 @@ MyEffect( device, filename ) {
 }
 SimpleEffect::~SimpleEffect() {}
 
-TerrainEffect::TerrainEffect( ID3D11Device* device, const std::wstring& filename ) :
+LavaEffect::LavaEffect( ID3D11Device* device, const std::wstring& filename ) :
 MyEffect( device, filename ) {
-	terrainTechnique = fx->GetTechniqueByName( "TerrainTech" );
+	lavaTechnique = fx->GetTechniqueByName( "TerrainTech" );
 	world = fx->GetVariableByName( "gWorld" )->AsMatrix();
 	worldInvTranspose = fx->GetVariableByName( "gWorldInvTranspose" )->AsMatrix();
 	worldViewProj = fx->GetVariableByName( "gWorldViewProj" )->AsMatrix();
 	diffuseMap = fx->GetVariableByName( "gDiffuseMap" )->AsShaderResource();
 }
-TerrainEffect::~TerrainEffect() {}
+LavaEffect::~LavaEffect() {}
 
 StaticGeomEffect::StaticGeomEffect( ID3D11Device* device, const std::wstring& filename ) :
 MyEffect( device, filename ) {
@@ -44,6 +44,7 @@ MyEffect( device, filename ) {
 	worldInvTranspose = fx->GetVariableByName( "gWorldInvTranspose" )->AsMatrix();
 	worldViewProj = fx->GetVariableByName( "gWorldViewProj" )->AsMatrix();
 	diffuseMap = fx->GetVariableByName( "gDiffuseMap" )->AsShaderResource();
+	ambientMap = fx->GetVariableByName( "gAmbientMap" )->AsShaderResource();
 	eyePosW = fx->GetVariableByName( "gEyePosW" )->AsVector();
 	pointLights = fx->GetVariableByName( "gPointLights" );
 	mat = fx->GetVariableByName( "gMaterial" );
@@ -70,6 +71,7 @@ MyEffect( device, filename ) {
 	worldInvTranspose = fx->GetVariableByName( "gWorldInvTranspose" )->AsMatrix();
 	worldViewProj = fx->GetVariableByName( "gWorldViewProj" )->AsMatrix();
 	diffuseMap = fx->GetVariableByName( "gDiffuseMap" )->AsShaderResource();
+	ambientMap = fx->GetVariableByName( "gAmbientMap" )->AsShaderResource();
 	eyePosW = fx->GetVariableByName( "gEyePosW" )->AsVector();
 	pointLights = fx->GetVariableByName( "gPointLights" );
 	mat = fx->GetVariableByName( "gMaterial" );
@@ -78,14 +80,14 @@ MyEffect( device, filename ) {
 CharacterSkinnedEffect::~CharacterSkinnedEffect() {}
 
 SimpleEffect* MyEffects::SimpleFX = 0;
-TerrainEffect* MyEffects::TerrainFX = 0;
+LavaEffect* MyEffects::LavaFX = 0;
 StaticGeomEffect* MyEffects::StaticGeomFX = 0;
 CharacterEffect* MyEffects::CharacterFX = 0;
 CharacterSkinnedEffect* MyEffects::CharacterSkinnedFX = 0;
 
 void MyEffects::InitAll( ID3D11Device* device ) {
 	SimpleFX = new SimpleEffect( device, L"fx/simple.fxo" );
-	TerrainFX = new TerrainEffect( device, L"fx/terrain.fxo" );
+	LavaFX = new LavaEffect( device, L"fx/lava.fxo" );
 	StaticGeomFX = new StaticGeomEffect( device, L"fx/staticGeom.fxo" );
 	CharacterFX = new CharacterEffect( device, L"fx/character.fxo" );
 	CharacterSkinnedFX = new CharacterSkinnedEffect( device, L"fx/characterSkinned.fxo" );
@@ -93,7 +95,7 @@ void MyEffects::InitAll( ID3D11Device* device ) {
 
 void MyEffects::DestroyAll() {
 	SafeDelete( SimpleFX );
-	SafeDelete( TerrainFX );
+	SafeDelete( LavaFX );
 	SafeDelete( StaticGeomFX );
 	SafeDelete( CharacterFX );
 	SafeDelete( CharacterSkinnedFX );

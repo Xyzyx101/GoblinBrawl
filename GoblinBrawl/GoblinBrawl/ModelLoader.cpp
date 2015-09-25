@@ -8,6 +8,8 @@
 #include "Skeleton.h"
 #include "AnimationController.h"
 
+using namespace DirectX;
+
 ModelLoader::ModelLoader( ID3D11Device* device, std::string modelDir, std::string textureDir ) :
 device( device ),
 modelDir( modelDir ),
@@ -114,12 +116,25 @@ void ModelLoader::CreateVertexBuffer( aiMesh* mesh, Vertex::VERTEX_TYPE type ) {
 		SetVertices( device, count, vertData.data() );
 		break;
 	}
-	case Vertex::CHARACTER:
-	case Vertex::TERRAIN:
+	case Vertex::STATIC_GEOMETRY:
 	{
 		aiVector3D* normals = mesh->mNormals;
 		aiVector3D* texCoords = mesh->mTextureCoords[0];
-		std::vector<Vertex::TerrainVertex> vertData( count );
+		std::vector<Vertex::StaticGeomVertex> vertData( count );
+		for( UINT i = 0; i<count; ++i ) {
+			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
+			vertData[i].Normal = XMFLOAT3( normals[i].x, normals[i].y, normals[i].z );
+			vertData[i].Tex = XMFLOAT2( texCoords[i].x, texCoords[i].y );
+		}
+		SetVertices( device, count, vertData.data() );
+		break;
+	}
+	case Vertex::LAVA:
+	{
+		aiVector3D* normals = mesh->mNormals;
+		aiVector3D* texCoords = mesh->mTextureCoords[0];
+		std::vector<Vertex::LavaVertex> vertData( count );
 		for( UINT i = 0; i<count; ++i ) {
 			UpdateExtents( vertices[i].x, vertices[i].y, vertices[i].z );
 			vertData[i].Pos = XMFLOAT3( vertices[i].x, vertices[i].y, vertices[i].z );
@@ -229,14 +244,14 @@ DirectX::XMMATRIX XM_CALLCONV ModelLoader::ConvertMatrix( aiMatrix4x4 inMat ) {
 		inMat.a2, inMat.b2, inMat.c2, inMat.d2,
 		inMat.a3, inMat.b3, inMat.c3, inMat.d3,
 		inMat.a4, inMat.b4, inMat.c4, inMat.d4 );
-	DirectX::XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	/*DirectX::XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
 	DirectX::XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
 	DirectX::XMMATRIX flipY = XMMATRIX(
 		1.f, 0.f, 0.f, 0.f,
 		0.f, -1.f, 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
 		0.f, 0.f, 0.f, 1.f );
-	DirectX::XMMATRIX converted = transposed*rotX*rotZ*flipY;
+	DirectX::XMMATRIX converted = transposed*rotX*rotZ*flipY;*/
 	return transposed;
 }
 

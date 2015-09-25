@@ -2,6 +2,8 @@
 #include "AnimationController.h"
 #include "Skeleton.h"
 
+using namespace DirectX;
+
 AnimationController::AnimationController() {}
 
 AnimationController::~AnimationController() {}
@@ -42,14 +44,14 @@ float AnimationController::GetAnimTime( ANIM_NAME anim ) {
 
 void AnimationController::Interpolate( float dt ) {
 	timeSinceStart += dt;
-	Anim anim = *anims[currentAnim];
-	float animCurrentTime = fmod( timeSinceStart, anim.totalTime );
-	for( Bone* bone:anim.boneSet ) {
+	Anim* anim = anims[currentAnim];
+	float animCurrentTime = fmod( timeSinceStart, anim->totalTime );
+	for( Bone* bone:anim->boneSet ) {
 		XMMATRIX rotMat, scaleMat, translateMat;
 
 		// Interpolate Rotation
-		auto rotSetIt = anim.rotChannels.find( bone );
-		if( rotSetIt==anim.rotChannels.end() ) {
+		auto rotSetIt = anim->rotChannels.find( bone );
+		if( rotSetIt==anim->rotChannels.end() ) {
 			rotMat = XMMatrixIdentity();
 		} else {
 			keySet_t rotKeySet = rotSetIt->second;
@@ -68,11 +70,24 @@ void AnimationController::Interpolate( float dt ) {
 			XMVECTOR interp = XMQuaternionSlerp( low, high, factor );
 			XMVECTOR normalized = XMQuaternionNormalize( interp );
 			rotMat = XMMatrixRotationQuaternion( interp );
+
+
+			XMVECTOR xmVelocity = XMQuaternionDot( low, high );
+			float time = itHigh->first-itLow->first;
+			float velocityFactor;
+			if( time>0 ) {
+				XMStoreFloat( &velocityFactor, xmVelocity );
+				velocityFactor = (1.f-velocityFactor)/time;
+
+			} else {
+				velocityFactor = 0.f;
+			}
+			finalVelocityFactor[bone] = velocityFactor;
 		}
 
 		// Interpolate Scale
-		auto scaleSetIt = anim.scaleChannels.find( bone );
-		if( scaleSetIt==anim.scaleChannels.end() ) {
+		auto scaleSetIt = anim->scaleChannels.find( bone );
+		if( scaleSetIt==anim->scaleChannels.end() ) {
 			scaleMat = XMMatrixIdentity();
 		} else {
 			keySet_t scaleKeySet = scaleSetIt->second;
@@ -95,8 +110,8 @@ void AnimationController::Interpolate( float dt ) {
 		}
 
 		// Interpolate Position
-		auto posSetIt = anim.posChannels.find( bone );
-		if( posSetIt==anim.posChannels.end() ) {
+		auto posSetIt = anim->posChannels.find( bone );
+		if( posSetIt==anim->posChannels.end() ) {
 			translateMat = XMMatrixIdentity();
 		} else {
 			keySet_t posKeySet = posSetIt->second;
@@ -149,7 +164,26 @@ DirectX::XMFLOAT4X4 AnimationController::GetBoneTransform( Bone* bone ) {
 			0.f, 1.f, 0.f, 0.f,
 			0.f, 0.f, 1.f, 0.f,
 			0.f, 0.f, 0.f, 1.f );
-	} else {
-		return it->second;
 	}
+	return it->second;
+}
+
+DirectX::XMFLOAT4 AnimationController::GetBoneRotation( Bone* bone ) {
+	XMFLOAT4X4 xform = GetBoneTransform( bone );
+	XMMATRIX xmXform = XMLoadFloat4x4( &xform );
+
+	DirectX::XMVECTOR junk;
+	DirectX::XMVECTOR outRotQuat;
+	XMMatrixDecompose( &junk, &outRotQuat, &junk, xmXform );
+	XMFLOAT4 quat;
+	XMStoreFloat4( &quat, outRotQuat );
+	return quat;
+}
+
+float AnimationController::GetBoneVelocity( Bone* bone ) {
+	auto it = finalVelocityFactor.find( bone );
+	if( it==finalVelocityFactor.end() ) {
+		return 0.f;
+	}
+	return it->second;
 }

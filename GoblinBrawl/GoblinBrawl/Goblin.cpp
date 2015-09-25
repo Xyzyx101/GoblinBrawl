@@ -10,6 +10,9 @@
 #include "PhysicsWorld.h"
 #include "Bullet/BulletDynamics/Character/btKinematicCharacterController.h"
 #include "Bullet/BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "SharedResources.h"
+
+using namespace DirectX;
 
 Goblin::Goblin() :
 mesh( nullptr ),
@@ -34,7 +37,7 @@ Goblin::~Goblin() {
 
 bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::KeyboardStateTracker* kb, GamePad* gamePad, PLAYER player, PhysicsWorld* physicsWorld ) {
 	// Model
-	modelLoader->Load( "Goblin4_0006_Export.fbx", Vertex::CHARACTER_SKINNED );
+	modelLoader->Load( "Goblin4_0007_Export.fbx", Vertex::CHARACTER_SKINNED );
 	mesh = modelLoader->GetMesh();
 	if( mesh->VB()==nullptr ) {
 		return false;
@@ -47,22 +50,23 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	//Texture
 	HR( CreateWICTextureFromFile( device, L"./art/textures/goblin_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
-	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Diffuse = XMFLOAT4( 0.8f, 0.7f, 0.8f, 1.0f );
+	mat.Specular = XMFLOAT4( 0.02f, 0.02f, 0.02f, 32.0f );
 
 	// Start Position
 	XMFLOAT4 goblinPos;
 	if( player==PLAYER_1 ) {
-		goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
+		//goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
+		goblinPos = XMFLOAT4( 16.4867f, 5.9049f, -10.8f, 1.0f );
 	} else {
 		goblinPos = XMFLOAT4( 20.f, 5.f, 10.f, 1.0f );
 	}
 	XMVECTOR xmVectorPos = XMLoadFloat4( &goblinPos );
 	SetPos( xmVectorPos );
 	rot = XMMatrixIdentity();
-	XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
-	XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-	importRot = rotX*rotZ;
+	//XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
+	//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
+	//importRot = rotX*rotZ;
 	scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f ); //FBX scale
 
 	// Keyboard Controller
@@ -134,6 +138,7 @@ void XM_CALLCONV Goblin::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vec
 	MyEffects::CharacterSkinnedFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::CharacterSkinnedFX->SetWorldViewProj( worldViewProj );
 	MyEffects::CharacterSkinnedFX->SetDiffuseMap( diffuseView );
+	MyEffects::CharacterSkinnedFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::CharacterSkinnedFX->SetEyePosW( cameraPos );
 	MyEffects::CharacterSkinnedFX->SetPointLights( pointLights.data() );
 	MyEffects::CharacterSkinnedFX->SetMaterial( mat );
@@ -154,6 +159,8 @@ void Goblin::Update( float dt ) {
 	fprintf( stdout, "DT : %f, Pos: %3.2f %3.2f %3.2f", dt, pos.r[3].m128_f32[0], pos.r[3].m128_f32[1], pos.r[3].m128_f32[2] );
 	UpdateActions();
 	fsm->Update( dt );
+	skeleton->SetRootTransform( GetWorld() );
+	skeleton->Update( dt );
 	animController.Interpolate( dt );
 	UpdateModelTransforms();
 }
@@ -181,7 +188,7 @@ void Goblin::UpdateController( float dt ) {
 	}
 	XMStoreFloat2( &moveVel, xmMoveVel );
 
-	float rotY = atan2( moveVel.y, moveVel.x );
+	float rotY = atan2( moveVel.x, moveVel.y );
 	btMatrix3x3 moveRot;
 	moveRot.setEulerZYX( 0.f, rotY, 0.f );
 
@@ -271,6 +278,9 @@ void Goblin::UpdateActions() {
 		} else if( action.Left ) {
 			moveDir.x -= 1.f;
 		}
+	}
+	if( moveDir.y>0 ) {
+		int DELETEME = 17;
 	}
 }
 

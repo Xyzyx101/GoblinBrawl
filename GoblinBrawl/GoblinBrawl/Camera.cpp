@@ -2,7 +2,6 @@
 #include "Camera.h"
 #include "Goblin.h"
 #include "Game.h"
-
 /* 
 Toggle DEV Camera on or off with HOME key
 DEV Camera controls are;
@@ -15,6 +14,7 @@ Page Down		- turn down
 <, Key			- strafe left
 >. Key			- strafe right
 */
+
 Camera::Camera() :
 camType(0),
 pos( 0.0f, 8.0f, 0.0f ),

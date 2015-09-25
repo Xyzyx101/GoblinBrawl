@@ -6,6 +6,9 @@
 #include "MyEffects.h"
 #include "MathUtils.h"
 #include "WICTextureLoader.h"
+#include "SharedResources.h"
+
+using namespace DirectX;
 
 FirePlinth::FirePlinth() : 
 mesh (nullptr),
@@ -15,22 +18,22 @@ diffuseView(nullptr)
 FirePlinth::~FirePlinth() {}
 
 bool FirePlinth::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
-	modelLoader->Load( "firePlinth.lxo", Vertex::TERRAIN );
+	modelLoader->Load( "firePlinth.lxo", Vertex::STATIC_GEOMETRY );
 	mesh = modelLoader->GetMesh();
 	if( !mesh ) {
 		return false;
 	}
 	HR( CreateWICTextureFromFile( device, L"./art/textures/fire_plinth_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
-	mat.Diffuse = XMFLOAT4( 0.8f, 0.8f, 0.8f, 1.0f );
-	mat.Specular = XMFLOAT4( 0.3f, 0.3f, 0.3f, 32.0f );
+	mat.Diffuse = XMFLOAT4( 0.6f, 0.4f, 0.4f, 1.0f );
+	mat.Specular = XMFLOAT4( 0.4f, 0.2f, 0.2f, 32.0f );
 	return true;
 }
 
 void XM_CALLCONV FirePlinth::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vector<PointLight> pointLights, ID3D11DeviceContext* context ) {
-	context->IASetInputLayout( InputLayouts::Terrain );
+	context->IASetInputLayout( InputLayouts::StaticGeom );
 	context->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-	UINT stride = sizeof( Vertex::TerrainVertex );
+	UINT stride = sizeof( Vertex::StaticGeomVertex );
 	UINT offset = 0;
 	ID3D11Buffer* buffers[1] = { mesh->VB() };
 	context->IASetVertexBuffers( 0, 1, &buffers[0], &stride, &offset );
@@ -44,6 +47,7 @@ void XM_CALLCONV FirePlinth::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std:
 	MyEffects::StaticGeomFX->SetWorldInvTranspose( worldInvTranspose );
 	MyEffects::StaticGeomFX->SetWorldViewProj( worldViewProj );
 	MyEffects::StaticGeomFX->SetDiffuseMap( diffuseView );
+	MyEffects::StaticGeomFX->SetAmbientMap( SharedResources::directionalAmbientView );
 	MyEffects::StaticGeomFX->SetEyePosW( cameraPos );
 	MyEffects::StaticGeomFX->SetPointLights( pointLights.data() );
 	MyEffects::StaticGeomFX->SetMaterial( mat );

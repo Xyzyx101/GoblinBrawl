@@ -366,6 +366,7 @@ xcopy /y $(ProjectDir)fx\*.fxo $(TargetDir)fx</Command>
     <ClInclude Include="PhysicsDebugDrawer.h" />
     <ClInclude Include="PhysicsWorld.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SharedResources.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -528,6 +529,7 @@ xcopy /y $(ProjectDir)fx\*.fxo $(TargetDir)fx</Command>
     <ClCompile Include="ModelLoader.cpp" />
     <ClCompile Include="PhysicsDebugDrawer.cpp" />
     <ClCompile Include="PhysicsWorld.cpp" />
+    <ClCompile Include="SharedResources.cpp" />
     <ClCompile Include="Skeleton.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -573,7 +575,7 @@ xcopy /y $(ProjectDir)fx\*.fxo $(TargetDir)fx</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)fx\%(Filename).fxo</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="fx\terrain.fx">
+    <FxCompile Include="fx\lava.fx">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">VS</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Effect</ShaderType>
