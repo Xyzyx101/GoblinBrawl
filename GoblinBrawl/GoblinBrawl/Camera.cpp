@@ -2,46 +2,66 @@
 #include "Camera.h"
 #include "Goblin.h"
 
+/* 
+Toggle DEV Camera on or off with HOME key
+DEV Camera controls are;
+Arrow Up		- move forward
+Arrow Down		- move back
+Arrow Left		- turn left
+Arrow Right		- turn right
+Page Up			- turn up
+Page Down		- turn down
+<, Key			- strafe left
+>. Key			- strafe right
+*/
 Camera::Camera() :
-pos( 8.0f, 5.0f, 0.0f ),
-right( 1.0f, 0.0f, 0.0f ),
+camType(0),
+pos( 0.0f, 8.0f, 0.0f ),
+right( 0.0f, 0.0f, 1.0f ),
 up( 0.0f, 1.0f, 0.0f ),
-look( 0.0f, 0.5f, 1.0f )
+look( -1.0f, 0.0f, 0.0f )
 {
-	SetLens( 0.2f, 1.0f, 0.0f, 1000.0f );
 }
 
 Camera::~Camera() {}
 
+void Camera::Init(float aspectRatio) {
+	SetAspect( aspectRatio );
+	SetLens( 0.25 * 3.14, aspect, 1.0f, 1000.0f );
+	UpdateViewMatrix();
+}
+
 void XM_CALLCONV Camera::Update( float deltaTime ) {
-	
+
 	if( GetAsyncKeyState( VK_HOME ) ) {
-		UINT incCamType = GetCamType();
-		UINT newCamType = incCamType++;
-		SetCamType( newCamType );
+		SetCamType();
 	}
-	if( GetAsyncKeyState( VK_LEFT ) ) {
-		// camera strafe left
-		if( GetCamType()==1 ) {
-			Strafe( -15.0f * deltaTime );
+	
+	if( GetCamType()==1 ) {
+
+		if( GetAsyncKeyState( VK_LEFT ) ) {
+			RotateY( 5.0f * deltaTime );
 		}
-	}
-	if( GetAsyncKeyState( VK_RIGHT ) ) {
-		// camera strafe right
-		if( GetCamType()==1 ) {
-			Strafe( 15.0f * deltaTime );
+		if( GetAsyncKeyState( VK_RIGHT ) ) {
+			RotateY( -5.0f * deltaTime );
 		}
-	}
-	if( GetAsyncKeyState( VK_UP ) ) {
-		// camera move forward
-		if( GetCamType()==1 ) {
+		if( GetAsyncKeyState( VK_UP ) ) {
 			Walk( -15.0f * deltaTime );
 		}
-	}
-	if( GetAsyncKeyState( VK_DOWN ) ) {
-		// camera move back
-		if( GetCamType()==1 ) {
+		if( GetAsyncKeyState( VK_DOWN ) ) {
 			Walk( 15.0f * deltaTime );
+		}
+		if( GetAsyncKeyState( VK_PRIOR ) ) {
+			Pitch( 1.0f * deltaTime );
+		}
+		if( GetAsyncKeyState( VK_NEXT ) ) {
+			Pitch( -1.0f * deltaTime );
+		}
+		if( GetAsyncKeyState( VK_OEM_COMMA ) ) {
+			Strafe( -15.0f * deltaTime );
+		}
+		if( GetAsyncKeyState( VK_OEM_PERIOD ) ) {
+			Strafe( 15.0f * deltaTime );
 		}
 	}
 
@@ -213,17 +233,15 @@ UINT XM_CALLCONV Camera::GetCamType() const {
 	return camType;
 }
 
-void XM_CALLCONV Camera::SetCamType( UINT incTypeNum ) {
+void XM_CALLCONV Camera::SetCamType() {
 	// used int so we can have any number of different settings
 	// 0 = default, normal game camera the way it should be played
 	// 1 = dev view, move camera around freely using keyboard arrow keys
 	// toggle through settings, increase maxCamTypes here if more are made
-	
-	if( incTypeNum >= MAXCAMTYPES ) {
+	camType++;
+	if( camType > MAXCAMTYPES ) {
 		camType = 0;
-	} else {
-		camType++;
-	}
+	} 
 }
 
 void Camera::SetAspect( float iAspect ) {

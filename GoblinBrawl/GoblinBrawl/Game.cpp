@@ -43,7 +43,6 @@ paused( false ) {
 	game = this;
 	lastMousePos.x = 0;
 	lastMousePos.y = 0;
-	camera.SetPos( 0.0f, 30.0f, 0.0f );
 }
 
 Game::~Game() {
@@ -63,7 +62,7 @@ Game::~Game() {
 
 bool Game::Init() {
 	camera = Camera();
-	camera.SetAspect( AspectRatio() );
+	camera.Init( AspectRatio() );
 
 	if( !InitMainWindow() ) {
 		return false;
@@ -262,7 +261,7 @@ void Game::OnResize() {
 	vp.MaxDepth = 1.f;
 	d3DImmediateContext->RSSetViewports( 1, &vp );
 
-	camera.SetLens( 0.25f * 3.14, AspectRatio(), 1.0f, 1000.0f );
+	camera.Init( AspectRatio() );
 }
 
 LRESULT Game::MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
@@ -465,8 +464,6 @@ void Game::Update( float dt ) {
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
 	
-	
-	//camera.LookAt( camera.GetPosXM(), goblin.getPos(), camera.GetUpXM() );
 	camera.Update( dt );
 }
 
@@ -507,5 +504,4 @@ void Game::OnMouseMove( WPARAM btnState, int x, int y ) {
 	}
 	lastMousePos.x = x;
 	lastMousePos.y = y;
-	camera.Update( timer.DT() );
 }
