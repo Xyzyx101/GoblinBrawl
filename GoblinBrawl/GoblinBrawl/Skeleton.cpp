@@ -479,22 +479,6 @@ btConeTwistConstraint* Skeleton::CreateConstraint( Bone* bone, Bone* target ) {
 	XMStoreFloat3( &f_constraintBoneSpace, constraintBoneSpace );
 	XMStoreFloat3( &f_constraintTargetSpace, constraintTargetSpace );
 
-	/*XMVECTOR boneRotQuat = XMLoadFloat4( &(bone->initialRotQuat) );
-	XMMATRIX boneRotW = XMMatrixRotationQuaternion( boneRotQuat );
-	XMMATRIX boneRotTargetSpace = XMMatrixMultiply( boneRotW, targetWorldInverse );
-	XMVECTOR junk, boneRotTargetSpaceQuat;
-	XMMatrixDecompose( &junk, &boneRotTargetSpaceQuat, &junk, boneRotTargetSpace );
-	XMFLOAT4 f_boneRotTargetSpaceQuat;
-	XMStoreFloat4( &f_boneRotTargetSpaceQuat, boneRotTargetSpaceQuat );
-
-	XMVECTOR targetRotQuat = XMLoadFloat4( &(target->initialRotQuat) );
-	XMMATRIX targetRotW = XMMatrixRotationQuaternion( targetRotQuat );
-	XMMATRIX targetRotBoneSpace = XMMatrixMultiply( targetRotW, boneWorldInverse );
-	XMVECTOR targetRotBoneSpaceQuat;
-	XMMatrixDecompose( &junk, &targetRotBoneSpaceQuat, &junk, targetRotBoneSpace );
-	XMFLOAT4 f_targetRotBoneSpaceQuat;
-	XMStoreFloat4( &f_targetRotBoneSpaceQuat, targetRotBoneSpaceQuat );*/
-
 	XMMATRIX boneRotW = XMLoadFloat4x4( &(bone->initialRot) );
 	XMMATRIX boneRotTargetSpace = XMMatrixMultiply( boneRotW, targetWorldInverse );
 	XMVECTOR junk, boneRotTargetSpaceQuat;
