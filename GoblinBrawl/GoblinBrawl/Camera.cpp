@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Camera.h"
 #include "Goblin.h"
+#include "Game.h"
 
 /* 
 Toggle DEV Camera on or off with HOME key
@@ -27,6 +28,7 @@ Camera::~Camera() {}
 
 void Camera::Init(float aspectRatio) {
 	SetAspect( aspectRatio );
+	
 	SetLens( 0.25 * 3.14, aspect, 1.0f, 1000.0f );
 	UpdateViewMatrix();
 }
@@ -63,6 +65,15 @@ void XM_CALLCONV Camera::Update( float deltaTime ) {
 		if( GetAsyncKeyState( VK_OEM_PERIOD ) ) {
 			Strafe( 15.0f * deltaTime );
 		}
+	} else {
+
+		// default camera
+		
+		//XMStoreFloat3( &target1, goblin1Pos);
+		//XMVECTOR posV = XMLoadFloat3( &pos );
+		//XMVECTOR targetV = goblin1Pos;
+		//XMVECTOR upV = GetUpXM();
+		//LookAt( posV, targetV, upV );
 	}
 
 	UpdateViewMatrix();
@@ -246,4 +257,8 @@ void XM_CALLCONV Camera::SetCamType() {
 
 void Camera::SetAspect( float iAspect ) {
 	aspect = iAspect;
+}
+
+void XM_CALLCONV Camera::SetGoblin1Pos( FXMVECTOR iGob1PosMatrix ) {
+	goblin1Pos = iGob1PosMatrix;
 }

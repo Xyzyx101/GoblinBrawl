@@ -25,9 +25,6 @@ public:
 	void OnResize();
 	LRESULT MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam );
 	int Run();
-	void OnMouseDown( WPARAM btnState, int x, int y );
-	void OnMouseUp( WPARAM btnState, int x, int y );
-	void OnMouseMove( WPARAM btnState, int x, int y );
 
 private:
 	bool InitMainWindow();
@@ -69,6 +66,5 @@ private:
 	std::unique_ptr<
 		Keyboard::KeyboardStateTracker>	kbTracker;
 	std::unique_ptr<GamePad>			gamePad;
-	POINT								lastMousePos;
 };
 

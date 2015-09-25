@@ -41,8 +41,6 @@ depthStencilView( nullptr ),
 paused( false ) {
 	ZeroMemory( &screenViewport, sizeof( D3D11_VIEWPORT ) );
 	game = this;
-	lastMousePos.x = 0;
-	lastMousePos.y = 0;
 }
 
 Game::~Game() {
@@ -464,6 +462,7 @@ void Game::Update( float dt ) {
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
 	
+	//camera.SetGoblin1Pos( goblin.getPos() );
 	camera.Update( dt );
 }
 
@@ -482,26 +481,4 @@ void Game::Draw() {
 	physicsWorld->DrawDebug(viewProj);
 #endif
 	swapChain->Present( 0, 0 );
-}
-
-void Game::OnMouseDown( WPARAM btnState, int x, int y ) {
-	lastMousePos.x = x;
-	lastMousePos.y = y;
-	SetCapture( hMainWnd );
-}
-
-void Game::OnMouseUp( WPARAM btnState, int x, int y ) {
-	ReleaseCapture();
-}
-
-void Game::OnMouseMove( WPARAM btnState, int x, int y ) {
-	if( (btnState & MK_LBUTTON)!=0 ) {
-		// make each pixel correspond to a quarter of a degree
-		float dx = XMConvertToRadians( 0.25f * static_cast<float>(x-lastMousePos.x) );
-		float dy = XMConvertToRadians( 0.25f * static_cast<float>(x-lastMousePos.y) );
-		camera.Pitch( dy );
-		camera.RotateY( dx );
-	}
-	lastMousePos.x = x;
-	lastMousePos.y = y;
 }
