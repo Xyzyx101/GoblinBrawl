@@ -3,7 +3,7 @@
 #include "btBulletDynamicsCommon.h"
 #include "BulletDynamics\MLCPSolvers\btDantzigSolver.h"
 
-//#define PHYSICS_DEBUG_MODE
+#define PHYSICS_DEBUG_MODE
 
 class PhysicsDebugDrawer;
 
@@ -14,7 +14,6 @@ enum COLLIDE_MASK {
 	GROUND = 1<<2,
 	FIRE_PLINTH = 1<<3
 };
-
 
 class PhysicsWorld {
 public:

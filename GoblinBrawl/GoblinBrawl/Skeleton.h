@@ -28,6 +28,11 @@ __declspec(align(16)) struct Bone {
 	std::vector<btTypedConstraint*>		joints;
 	std::string							name;
 	bool								dirty;
+	DirectX::XMFLOAT3					headW;
+	DirectX::XMFLOAT3					tailW;
+	DirectX::XMFLOAT4					initialRotQuat;
+	DirectX::XMFLOAT3					boneToBodyOffset;
+	btTransform							btWorld;
 };
 
 
@@ -100,6 +105,7 @@ public:
 	enum JOINT {
 		J_ROOT_HIP,
 		J_HIP_LOWER_SPINE,
+		J_HIP_R,
 		J_LOWER_UPPER_SPINE,
 		J_SPINE_NECK,
 		J_NECK_HEAD,
@@ -113,7 +119,6 @@ public:
 		J_WRIST_L,
 		J_HAND_CLUB,
 		J_HIP_L,
-		J_HIP_R,
 		J_KNEE_L,
 		J_KNEE_R,
 		J_ANKLE_L,
@@ -148,6 +153,7 @@ private:
 	void CreateBoneShape( SHAPE shape, Bone* target, float radius );
 	btRigidBody* CreateBoneBody( Bone* fromBone, Bone* toBone, btConvexShape* shape, float mass );
 	void CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &jointInfo );
+	btConeTwistConstraint* CreateConstraint( Bone* from, Bone* to );
 	float GetBoneLength( Bone* bone );
 	void InitMotorData();
 	void UpdateMotorData();
