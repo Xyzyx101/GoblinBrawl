@@ -29,27 +29,11 @@ __declspec(align(16)) struct Bone {
 	std::string							name;
 	bool								dirty;
 	DirectX::XMFLOAT3					headW;
-	DirectX::XMFLOAT3					tailW;
 	DirectX::XMFLOAT4					initialRotQuat;
 	DirectX::XMFLOAT4X4					initialRot;
 	DirectX::XMFLOAT3					boneToBodyOffset;
-	btTransform							btWorld;
-};
-
-
-// TODO I think I can scrap this struct
-__declspec(align(16)) struct JointInfo {
-	btVector3	fromOffset;
-	btVector3	toOffset;
-	btScalar	aRotX;
-	btScalar	aRotY;
-	btScalar	aRotZ;
-	btScalar	bRotX;
-	btScalar	bRotY;
-	btScalar	bRotZ;
-	btScalar	swingLimit1;
-	btScalar	swingLimit2;
-	btScalar	twistLimit;
+	btTransform							btInitialBody;
+	btTransform							btInitialJointW;
 };
 
 __declspec(align(16)) struct MotorData {
@@ -152,9 +136,7 @@ private:
 	VOID CreateAllJoints();
 	void CreateBoneShape( SHAPE shape, Bone* target, float radius );
 	btRigidBody* CreateBoneBody( Bone* fromBone, Bone* toBone, btConvexShape* shape, float mass );
-	void CreateConstraint( JOINT joint, Bone* from, Bone* to, const JointInfo &jointInfo );
 	btConeTwistConstraint* CreateConstraint( Bone* from, Bone* to );
-	float GetBoneLength( Bone* bone );
 	void InitMotorData();
 	void UpdateMotorData();
 	void SetAllMotors(float dt);
