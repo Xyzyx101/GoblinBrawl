@@ -16,10 +16,12 @@ struct PointLight {
 	float Pad;
 };
 
-void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, float3 toEye, out float4 ambient, out float4 diffuse, out float4 spec ) {
+void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, float3 toEye, out float4 ambient, out float4 diffuse, out float4 spec, out float4 dirAmbient ) {
+	
 	ambient = float4 (0.f, 0.f, 0.f, 0.f);
 	diffuse = float4 (0.f, 0.f, 0.f, 0.f);
 	spec = float4 (0.f, 0.f, 0.f, 0.f);
+	dirAmbient = float4 (0.f, 0.f, 0.f, 0.f);
 
 	float3 lightVec = L.Position-pos;
 		float d = length( lightVec );
@@ -30,11 +32,11 @@ void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, f
 
 	lightVec /= d; //normalize
 
-	//ambient = mat.Ambient * L.Ambient;
+	ambient = mat.Ambient * L.Ambient;
 
-	ambient = dot( lightVec, normal );
-	ambient = ambient*0.5f+0.5f;
-	ambient = ambient*ambient;
+	dirAmbient = dot( lightVec, normal );
+	dirAmbient = dirAmbient*0.5f+0.5f;
+	dirAmbient = dirAmbient*dirAmbient;
 
 	float diffuseFactor = dot( lightVec, normal );
 	diffuseFactor = diffuseFactor*0.5f+0.5f;
@@ -44,7 +46,7 @@ void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, f
 	if( diffuseFactor>0.0f ) {
 		float3 v = reflect( -lightVec, normal );
 		float specFactor = pow( max( dot( v, toEye ), 0.0f ), mat.Specular.w );
-		diffuse = clamp(diffuseFactor * mat.Diffuse * L.Diffuse, 0.f, 0.2f);
+		diffuse = diffuseFactor * mat.Diffuse * L.Diffuse;
 		spec = specFactor * mat.Specular * L.Specular;
 	}
 
@@ -54,6 +56,6 @@ void ComputePointLight( Material mat, PointLight L, float3 pos, float3 normal, f
 	spec *= att;
 
 	//d *= 3.f;
-	float ambientAtt = att *att;// /2.f;// 1.0f/dot( L.Att, float3(d, d*d, d*d*d) );
-	ambient *= ambientAtt;
+	float dirAmbientAtt = att*att;// /2.f;// 1.0f/dot( L.Att, float3(d, d*d, d*d*d) );
+	dirAmbient *= dirAmbientAtt;
 }

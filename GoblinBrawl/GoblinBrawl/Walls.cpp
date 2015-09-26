@@ -24,6 +24,7 @@ bool Walls::Init( ModelLoader* modelLoader, ID3D11Device* device ) {
 	}
 	HR( CreateWICTextureFromFile( device, L"./art/textures/wall_color.tif", NULL, &diffuseView, NULL ) );
 	mat.Ambient = XMFLOAT4( 0.02f, 0.3f, 0.5f, 1.0f );
+	mat.Ambient = XMFLOAT4( 0.6f, 0.8f, 1.f, 1.0f );
 	mat.Diffuse = XMFLOAT4( 0.9f, 0.9f, 0.9f, 1.0f );
 	mat.Specular = XMFLOAT4( 0.5f, 0.5f, 0.5f, 64.0f );
 	return true;

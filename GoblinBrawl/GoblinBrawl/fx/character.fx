@@ -71,8 +71,8 @@ float4 PS( VertexOut pin, uniform int gLightCount ) : SV_Target{
 	float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	[unroll]
 	for( int i = 0; i<gLightCount; ++i ) {
-		float4 A, D, S;
-		ComputePointLight( gMaterial, gPointLights[i], pin.PosW, pin.NormalW, toEye, A, D, S );
+		float4 A, D, S, DA;
+		ComputePointLight( gMaterial, gPointLights[i], pin.PosW, pin.NormalW, toEye, A, D, S, DA );
 		ambient += A;
 		diffuse += D;
 		spec += S;

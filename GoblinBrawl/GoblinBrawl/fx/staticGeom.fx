@@ -76,19 +76,20 @@ float4 PS( VertexOut pin, uniform int gLightCount ) : SV_Target{
 	float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 dirAmbient = float4(0.0f, 0.0f, 0.0f, 0.0f);
 	[unroll]
 	for( int i = 0; i<gLightCount; ++i ) {
-		float4 A, D, S;
-		ComputePointLight( gMaterial, gPointLights[i], pin.PosW, pin.NormalW, toEye, A, D, S );
+		float4 A, D, S, DA;
+		ComputePointLight( gMaterial, gPointLights[i], pin.PosW, pin.NormalW, toEye, A, D, S, DA );
 		ambient += A;
 		diffuse += D;
 		spec += S;
+		dirAmbient += DA;
 	}
-	
-	float4 ambientColor = gAmbientMap.Sample( samAmbient, float2(ambient.r, 0.f) );
+	float4 ambientColor = gAmbientMap.Sample( samAmbient, float2(dirAmbient.r, 0.f) );
+	ambientColor = clamp( ambientColor, ambient, float4(1.f, 1.f, 1.f, 1.f) );
 	float4 litColor = (texColor*diffuse*ambientColor)+spec;
-	litColor.a = gMaterial.Diffuse.a;
-
+	
 	return litColor;
 }
 
