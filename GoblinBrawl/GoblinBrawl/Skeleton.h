@@ -31,7 +31,7 @@ __declspec(align(16)) struct Bone {
 	DirectX::XMFLOAT3					headW;
 	DirectX::XMFLOAT4					initialRotQuat;
 	DirectX::XMFLOAT4X4					initialRot;
-	DirectX::XMFLOAT3					boneToBodyOffset;
+	btTransform							bodyToBoneOffset;
 	btTransform							btInitialBody;
 	btTransform							btInitialJointW;
 };

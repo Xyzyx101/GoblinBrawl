@@ -143,8 +143,10 @@ void Skeleton::UpdateLocalTransformsFromRagdoll() {
 		btDefaultMotionState* motionState = (btDefaultMotionState*)(joint->getRigidBodyB().getMotionState());
 		btTransform jointXform;
 		motionState->getWorldTransform( jointXform );
-		btVector3 jointTranspose = jointXform.getOrigin();
-		btQuaternion jointRot = jointXform.getRotation();
+		btTransform bodyToBoneOffset = bone->bodyToBoneOffset;
+		btTransform offsetJointXform = jointXform*bodyToBoneOffset;
+		btVector3 jointTranspose = offsetJointXform.getOrigin();
+		btQuaternion jointRot = offsetJointXform.getRotation();
 
 		XMVECTOR translateVector = XMVectorSet( jointTranspose.x(), jointTranspose.y(), jointTranspose.z(), 1.f );
 		XMMATRIX translate = XMMatrixTranslationFromVector( translateVector );
@@ -209,8 +211,7 @@ void Skeleton::InitPhysics( PhysicsWorld* _physicsWorld ) {
 	short mask = COLLIDE_MASK::NOTHING;
 	physicsWorld->World()->addRigidBody( body, group, mask );
 	root->body = body;
-	root->boneToBodyOffset = XMFLOAT3( 0.f, 0.f, 0.f );
-
+	
 	CreateAllShapes();
 	CreateAllBodies();
 	CreateAllJoints();
@@ -434,11 +435,14 @@ btRigidBody* Skeleton::CreateBoneBody( Bone* bone, Bone* target, btConvexShape* 
 	XMStoreFloat( &halfLength, halfLengthVec );
 	halfLength *= 0.5f;
 
+	btTransform bodyToBone;
+	bodyToBone.setIdentity();
+	bodyToBone.setOrigin( btVector3( btScalar( -halfLength ), btScalar( 0.f ), btScalar( 0.f ) ) );
+	bone->bodyToBoneOffset = bodyToBone;
 	XMVECTOR headL = XMLoadFloat3( &XMFLOAT3( -halfLength, 0.f, 0.f ) );
 	XMVECTOR headW = XMVector3Transform( headL, bodyTransform );
 	XMFLOAT3 f_headW;
 	XMStoreFloat3( &f_headW, headW );
-	//XMStoreFloat3( &(bone->headW), headW );
 
 	XMStoreFloat4x4( &(bone->initialRot), rot );
 	XMStoreFloat4( &(bone->initialRotQuat), boneRotQuat );
