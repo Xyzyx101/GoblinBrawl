@@ -26,6 +26,7 @@ public:
 	void OnResize();
 	LRESULT MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam );
 	int Run();
+
 private:
 	bool InitMainWindow();
 	bool InitDirect3D();

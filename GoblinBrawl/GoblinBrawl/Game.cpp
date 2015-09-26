@@ -63,6 +63,8 @@ Game::~Game() {
 
 bool Game::Init() {
 	camera = Camera();
+	camera.Init( AspectRatio() );
+
 	if( !InitMainWindow() ) {
 		return false;
 	}
@@ -327,6 +329,11 @@ LRESULT Game::MsgProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) {
 		PostQuitMessage( 0 );
 		return 0;
 	case WM_KEYDOWN:	// no break
+		if( GetAsyncKeyState( VK_ESCAPE ) ) {
+			DestroyWindow( hwnd );
+			return 0;
+		}
+		
 	case WM_SYSKEYDOWN: // no break
 	case WM_KEYUP:		// no break
 	case WM_SYSKEYUP:
@@ -458,23 +465,20 @@ void Game::Update( float dt ) {
 
 	physicsWorld->Update( dt );
 	physicsWorld->RunDemo();
-	XMVECTOR camPos = XMVectorSet( 0.f, 122.5f, 4.f, 1.f ); //XMFLOAT3( -11.4568f, 4.9013f, 17.961f );
-	XMVECTOR targetPos = XMVectorSet( 0.f, 4.f, 0.f, 1.0f );
-	camera.Update( camPos, targetPos );
-	camera.UpdateFollow(  goblin.GetWorld() );
+	camera.Update( dt );
+	camera.SetPos( 0.f, 6.f, 20.f );
 }
 
 void Game::Draw() {
-	XMMATRIX viewProj = camera.GetViewProj();
+	XMMATRIX viewProj = camera.ViewProj();
 	float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 	d3DImmediateContext->ClearRenderTargetView( renderTargetView, clearColor );
 	d3DImmediateContext->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0 );
-
-	floor.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
-	walls.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
+	floor.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
+	walls.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 	lava.Draw( viewProj, d3DImmediateContext );
-	firePlinth.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
-	goblin.Draw( viewProj, camera.GetPos(), lighting.GetPointLights(), d3DImmediateContext );
+	firePlinth.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
+	goblin.Draw( viewProj, camera.GetPosXM(), lighting.GetPointLights(), d3DImmediateContext );
 #ifdef PHYSICS_DEBUG_MODE
 	physicsWorld->DrawDebug(viewProj);
 #endif
