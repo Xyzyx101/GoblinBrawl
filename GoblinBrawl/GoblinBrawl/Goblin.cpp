@@ -20,9 +20,10 @@ diffuseView( nullptr ),
 ghostObject( nullptr ),
 controller( nullptr ),
 maxVel( 4.f ),
-moveAccel( 30.f ),
-turnAccel( XM_PI ),
-moveDecel( 0.35f ),
+moveAccel( 7.5f ),
+turnSpeed( 1.f ),
+maxTilt( XM_PIDIV4/2.f ),
+moveDecel( 3.5f ),
 fallSpeed( 20.f ),
 jumpSpeed( 10.f ),
 maxJumpHeight( 1.75f ) {
@@ -64,10 +65,8 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	XMVECTOR xmVectorPos = XMLoadFloat4( &goblinPos );
 	SetPos( xmVectorPos );
 	rot = XMMatrixIdentity();
-	//XMMATRIX rotX = XMMatrixRotationX( XM_PIDIV2 );
-	//XMMATRIX rotZ = XMMatrixRotationZ( XM_PIDIV2 );
-	//importRot = rotX*rotZ;
 	scale = XMMatrixScaling( 0.01f, 0.01f, 0.01f ); //FBX scale
+	modelTransform = scale*rot*pos;
 
 	// Keyboard Controller
 	this->kb = kb;
@@ -130,7 +129,8 @@ void XM_CALLCONV Goblin::Draw( FXMMATRIX viewProj, FXMVECTOR cameraPos, std::vec
 	context->IASetVertexBuffers( 0, 1, &buffers[0], &stride, &offset );
 	context->IASetIndexBuffer( mesh->IB(), mesh->IndexFormat(), 0 );
 
-	XMMATRIX world = scale * rot * pos;
+	XMMATRIX world = modelTransform;
+	//XMMATRIX world = scale * rot * pos;
 	XMMATRIX worldInvTranspose = MathUtils::InverseTranspose( world );
 	XMMATRIX worldViewProj = world*viewProj;
 
@@ -159,10 +159,11 @@ void Goblin::Update( float dt ) {
 	fprintf( stdout, "DT : %f, Pos: %3.2f %3.2f %3.2f\n", dt, pos.r[3].m128_f32[0], pos.r[3].m128_f32[1], pos.r[3].m128_f32[2] );
 	UpdateActions();
 	fsm->Update( dt );
-	skeleton->SetRootTransform( GetWorld() );
+	modelTransform = TiltTurnAndMove( dt );
+	skeleton->SetRootTransform( modelTransform );
 	skeleton->Update( dt );
 	animController.Interpolate( dt );
-	UpdateModelTransforms();
+	//UpdateModelTransforms( );
 }
 
 void Goblin::UpdateController( float dt ) {
@@ -179,13 +180,13 @@ void Goblin::UpdateController( float dt ) {
 	walkDir = XMVector2ClampLength( walkDir, 0.f, 1.f );
 
 	XMVECTOR xmMoveVel = XMLoadFloat2( &moveVel );
-	XMVECTOR length = XMVector2LengthSq(walkDir);
+	XMVECTOR length = XMVector2LengthSq( walkDir );
 	if( length.m128_f32[0]<0.01f ) {
-		xmMoveVel *= moveDecel;
+		xmMoveVel = XMVectorAdd( xmMoveVel, xmMoveVel * -moveDecel * dt );
 	} else {
 		xmMoveVel = XMVectorAdd( xmMoveVel, walkDir * moveAccel * dt );
-		xmMoveVel = XMVector2ClampLength( xmMoveVel, 0.f, maxVel );
 	}
+	xmMoveVel = XMVector2ClampLength( xmMoveVel, 0.f, maxVel );
 	XMStoreFloat2( &moveVel, xmMoveVel );
 
 	float rotY = atan2( moveVel.x, moveVel.y );
@@ -194,7 +195,59 @@ void Goblin::UpdateController( float dt ) {
 
 	ghostObject->getWorldTransform().setBasis( moveRot );
 	btVector3 btWalkVector( xmMoveVel.m128_f32[0], 0., xmMoveVel.m128_f32[1] );
-	controller->setWalkDirection( btWalkVector * physicsWorld->fixedTimeStep);
+	controller->setWalkDirection( btWalkVector * physicsWorld->fixedTimeStep );
+}
+
+DirectX::FXMMATRIX XM_CALLCONV Goblin::TiltTurnAndMove( float dt ) {
+	XMMATRIX rootXform = skeleton->GetRootTransform();
+	XMVECTOR rootScale, rootRotQuat, rootTranslate;
+	XMMatrixDecompose( &rootScale, &rootRotQuat, &rootTranslate, rootXform );
+	XMMATRIX scaleMat = XMMatrixScalingFromVector( rootScale );
+
+	// move
+	// match the model position to the controler position
+	btTransform controllerTransform = ghostObject->getWorldTransform();
+	btVector3 btPos = controllerTransform.getOrigin();
+	XMVECTOR dxPos = XMLoadFloat4( &XMFLOAT4( btPos.x(), btPos.y(), btPos.z(), 1.f ) );
+	dxPos = XMVector3Transform( dxPos, modelControllerOffset );
+	SetPos( dxPos );
+	btMatrix3x3 btRot = controllerTransform.getBasis().transpose();
+	XMMATRIX dxMat = XMMATRIX(
+		btRot[0].x(), btRot[0].y(), btRot[0].z(), 0,
+		btRot[1].x(), btRot[1].y(), btRot[1].z(), 0,
+		btRot[2].x(), btRot[2].y(), btRot[2].z(), 0,
+		0, 0, 0, 1.f );
+	rot = dxMat;
+	XMMATRIX translateMat = XMMatrixTranslationFromVector( dxPos );
+
+	// turn
+	XMVECTOR rotAxis = XMVectorSet( 0.f, 1.f, 0.f, 0.f );
+	float turn = atan2( moveVel.x, moveVel.y );
+	
+	XMVECTOR targetRotQuat = XMQuaternionRotationAxis( rotAxis, turn );
+	XMVECTOR finalRotQuat = XMQuaternionSlerp( rootRotQuat, targetRotQuat, 2.f * dt );
+	XMMATRIX turnRot = XMMatrixRotationQuaternion( finalRotQuat );
+
+	// tilt
+	// Tilt factor scales based on the difference between the intended move direction and the current move direction.
+	// If you push over on the stick hard be he hasn't moved because of acceleration then he leans forward.
+	fprintf( stdout, "moveVel: x:%.1f y:%.1f  moveDir: x:%.1f y:%.1f\n", moveVel.x,moveVel.y, moveDir.x, moveDir.y);
+	XMFLOAT2 tiltFactor( moveVel.x/maxVel-moveDir.x, moveVel.y/maxVel-moveDir.y );
+	XMVECTOR xmTiltFactor = XMLoadFloat2( &tiltFactor );
+	xmTiltFactor = XMVector2LengthEst( xmTiltFactor );
+	float f_tiltFactor;
+	XMStoreFloat( &f_tiltFactor, xmTiltFactor );
+		
+	fprintf( stdout, "tiltFactor: x:%.1f y:%.1f\n", tiltFactor.x, tiltFactor.y );
+	fprintf( stdout, "length: %.1f\n", f_tiltFactor );
+
+	// If over 1 then the intended movement is opposite the current movement and he leans back.
+	if( f_tiltFactor>1.f ) {
+		f_tiltFactor = -(f_tiltFactor-1.f);
+	}
+	XMMATRIX tiltRot = XMMatrixRotationX( f_tiltFactor*maxTilt );
+
+	return scaleMat*turnRot*tiltRot*translateMat;
 }
 
 void Goblin::UpdateModelTransforms() {

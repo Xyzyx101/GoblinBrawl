@@ -53,6 +53,7 @@ private:
 	void UpdateController( float dtS );
 	void UpdateModelTransforms();
 	void UpdateWalkDirection();
+	DirectX::FXMMATRIX XM_CALLCONV TiltTurnAndMove(float dt);
 
 	// Finite State Machine Functions
 	void InitFSM();
@@ -102,7 +103,6 @@ private:
 	ID3D11ShaderResourceView*					diffuseView;
 	Material									mat;
 	DirectX::XMMATRIX							pos;
-	//DirectX::XMMATRIX							importRot;
 	DirectX::XMMATRIX							rot;
 	DirectX::XMMATRIX							scale;
 	DirectX::XMMATRIX							world;
@@ -121,9 +121,11 @@ private:
 	DirectX::XMFLOAT2							moveDir;
 	DirectX::XMFLOAT2							moveVel;
 	float										maxVel;
-	float										moveAccel; // m/s/s
-	float										turnAccel; // rad/s/s
-	float										moveDecel; // m/s/s							
+	DirectX::XMMATRIX							modelTransform;
+	float										turnSpeed;	// seconds to turn
+	float										maxTilt;	// rad
+	float										moveAccel;	// m/s/s
+	float										moveDecel;	// m/s/s							
 	float										fallSpeed;
 	float										jumpSpeed;
 	float										maxJumpHeight;
