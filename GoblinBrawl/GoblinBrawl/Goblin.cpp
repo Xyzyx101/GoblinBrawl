@@ -22,7 +22,7 @@ controller( nullptr ),
 maxVel( 4.f ),
 moveAccel( 7.5f ),
 turnSpeed( 1.f ),
-maxTilt( XM_PIDIV4/2.f ),
+maxTilt( XM_PIDIV4/3.f ),
 moveDecel( 3.5f ),
 fallSpeed( 20.f ),
 jumpSpeed( 10.f ),
@@ -57,7 +57,6 @@ bool Goblin::Init( ModelLoader* modelLoader, ID3D11Device* device, Keyboard::Key
 	// Start Position
 	XMFLOAT4 goblinPos;
 	if( player==PLAYER_1 ) {
-		//goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
 		goblinPos = XMFLOAT4( 0.f, 4.f, 0.f, 1.0f );
 	} else {
 		goblinPos = XMFLOAT4( 20.f, 5.f, 10.f, 1.0f );
@@ -247,7 +246,7 @@ DirectX::FXMMATRIX XM_CALLCONV Goblin::TiltTurnAndMove( float dt ) {
 	}
 	XMMATRIX tiltRot = XMMatrixRotationX( f_tiltFactor*maxTilt );
 
-	return scaleMat*turnRot*tiltRot*translateMat;
+	return scaleMat*tiltRot*turnRot*translateMat;
 }
 
 void Goblin::UpdateModelTransforms() {

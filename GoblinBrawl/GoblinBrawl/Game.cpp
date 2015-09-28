@@ -10,6 +10,7 @@
 #include "Vertex.h"
 #include "PhysicsWorld.h"
 #include "SharedResources.h"
+#include "Sound.h"
 
 #define DISPLAY_FPS
 
@@ -426,6 +427,7 @@ float Game::AspectRatio() {
 }
 
 bool Game::LoadGameObjects() {
+	Sound::Init();
 	SharedResources::Init( d3DDevice );
 	physicsWorld->SetupDemo();
 	ModelLoader loader( d3DDevice, "./art/models/", "/art/textures/" );
@@ -454,6 +456,7 @@ bool Game::LoadGameObjects() {
 		fprintf( stderr, "Error initiating goblin" );
 		return false;
 	}
+	Sound::Play(MUSIC);
 	return true;
 }
 
