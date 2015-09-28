@@ -176,6 +176,10 @@ void XM_CALLCONV Skeleton::SetRootTransform( FXMMATRIX transform ) {
 	DirectX::XMStoreFloat4x4( &rootTransform, transform );
 }
 
+DirectX::FXMMATRIX XM_CALLCONV Skeleton::GetRootTransform() {
+	return DirectX::XMLoadFloat4x4( &rootTransform );
+}
+
 void Skeleton::InitPhysics( PhysicsWorld* _physicsWorld ) {
 	physicsWorld = _physicsWorld;
 	Bone* root = GetBoneByName( "Skeleton_Root" );

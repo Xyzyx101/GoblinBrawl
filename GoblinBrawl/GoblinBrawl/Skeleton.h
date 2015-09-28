@@ -122,6 +122,7 @@ public:
 	int BoneCount() { return numBones; };
 	void XM_CALLCONV InitPhysics( PhysicsWorld* physicsWorld );
 	void XM_CALLCONV SetRootTransform( DirectX::FXMMATRIX transform );
+	DirectX::FXMMATRIX XM_CALLCONV GetRootTransform();
 	void CreateDemoRagDoll();
 	btRigidBody* localCreateRigidBody( float mass, const btTransform& startTransform, btCollisionShape* shape );
 	void SetAnimationController( AnimationController* animationController );
@@ -139,7 +140,7 @@ private:
 	btConeTwistConstraint* CreateConstraint( Bone* from, Bone* to );
 	void InitMotorData();
 	void UpdateMotorData();
-	void SetAllMotors(float dt);
+	void SetAllMotors( float dt );
 	btTransform XM_CALLCONV XMMatrixToBTTransform( DirectX::FXMMATRIX m, bool fbxCorrection );
 	void DirtyBones();
 	int									numBones;
