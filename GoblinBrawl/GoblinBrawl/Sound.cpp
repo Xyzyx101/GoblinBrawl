@@ -34,11 +34,9 @@ bool Sound::Init() {
 	instance->m_weaponHit.reset( new SoundEffect( instance->m_audEngine.get(), L"Sound/WeaponHit.wav" ) );
 	instance->m_jump.reset( new SoundEffect( instance->m_audEngine.get(), L"Sound/GoblinJump.wav" ) );
 	instance->m_step.reset( new SoundEffect( instance->m_audEngine.get(), L"Sound/GoblinStep1.wav" ) );
-	instance->m_ambient.reset( new SoundEffect( instance->m_audEngine.get(), L"Sound/GameMusic.wav" ) );
+	instance->m_ambient.reset( new SoundEffect( instance->m_audEngine.get(), L"Sound/GameTrack1.wav" ) );
 	instance->m_musicLoop = instance->m_ambient->CreateInstance();
 	instance->m_lavaLoop = instance->m_lava->CreateInstance();
-
-
 
 	return true;
 }
