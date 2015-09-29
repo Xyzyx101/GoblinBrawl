@@ -6,6 +6,8 @@
 #include "GoblinBrawl.h"
 #include "Game.h"
 
+#define DEBUG_CONSOLE
+
 #define MAX_LOADSTRING 100
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -14,11 +16,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_ int       nCmdShow)
 {
 #if defined(DEBUG) | defined(_DEBUG)
+#if defined(DEBUG_CONSOLE)
 	// redirects sdterr and stdout to another window for debugging
 	if( AttachConsole( ATTACH_PARENT_PROCESS )||AllocConsole() ) {
 		freopen( "CONOUT$", "w", stdout );
 		freopen( "CONOUT$", "w", stderr );
 	}
+#endif
 #endif
 	
 	UNREFERENCED_PARAMETER(hPrevInstance);

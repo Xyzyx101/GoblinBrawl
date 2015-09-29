@@ -36,7 +36,7 @@ bool ModelLoader::Load( std::string filename, Vertex::VERTEX_TYPE type ) {
 		//aiProcess_MakeLeftHanded|
 		aiProcess_FlipWindingOrder|
 		aiProcess_Triangulate|
-		//aiProcess_JoinIdenticalVertices|
+		aiProcess_JoinIdenticalVertices|
 		aiProcess_SortByPType|
 		aiProcess_FlipUVs
 		);
